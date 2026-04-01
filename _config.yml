@@ -1,6 +1,3 @@
-title: Aar — Adaptive Action & Reasoning Agent
-description: A ready-to-use AI agent with chat, TUI, and web interfaces. Built-in tools, MCP support, persistent sessions. Provider-agnostic framework underneath.
+title: fischerf
 url: https://fischerf.github.io
-baseurl: /aar
-include:
-  - index.html
+baseurl: ""
