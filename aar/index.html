@@ -1,2130 +1,727 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Aar — Adaptive Action &amp; Reasoning</title>
-        <meta
-            name="description"
-            content="A ready-to-run AI agent with chat, TUI, and web interfaces. Built-in tools, MCP support, persistent sessions. Provider-agnostic framework underneath."
-        />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
-            rel="stylesheet"
-        />
-        <style>
-            /* ── Reset & Base ─────────────────────────────────── */
-            *,
-            *::before,
-            *::after {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            :root {
-                --bg: #09090b;
-                --bg-card: #111114;
-                --bg-code: #0c0c0f;
-                --text: #e4e4e7;
-                --text-dim: #71717a;
-                --text-code: #a1a1aa;
-                --accent: #f59e0b;
-                --accent2: #fb923c;
-                --accent3: #fbbf24;
-                --glow: rgba(245, 158, 11, 0.12);
-                --glow-strong: rgba(245, 158, 11, 0.25);
-                --border: #1e1e22;
-                --radius: 12px;
-                --font: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-                --mono: "JetBrains Mono", "Fira Code", monospace;
-            }
-            html {
-                scroll-behavior: smooth;
-                font-size: 16px;
-            }
-            body {
-                font-family: var(--font);
-                background: var(--bg);
-                color: var(--text);
-                line-height: 1.6;
-                overflow-x: hidden;
-                -webkit-font-smoothing: antialiased;
-            }
-            a {
-                color: var(--accent);
-                text-decoration: none;
-                transition: color 0.2s;
-            }
-            a:hover {
-                color: var(--accent3);
-            }
-            ::selection {
-                background: var(--glow-strong);
-                color: #fff;
-            }
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>aar — adaptive action &amp; reasoning agent</title>
+  <meta name="description" content="Lightweight open-source AI agent. ~80-line core loop, any provider, sandboxed tools. Python 3.11+. Apache 2.0."/>
+  <meta name="theme-color" content="#0c0c0f"/>
+  <style>
+    /* ─── tokens ─────────────────────────────────────────── */
+    :root {
+      --bg:         #0c0c0f;
+      --bg2:        #0f1117;
+      --bg3:        #13171f;
+      --border:     #1c2130;
+      --border2:    #242c3d;
+      --text:       #8b949e;
+      --text-dim:   #484f58;
+      --text-hi:    #cdd9e5;
+      --white:      #e6edf3;
+      --green:      #3fb950;
+      --blue:       #58a6ff;
+      --font: ui-monospace,"JetBrains Mono","Fira Code","Cascadia Code",monospace;
+    }
 
-            /* ── Ambient Background ───────────────────────────── */
-            .ambient {
-                position: fixed;
-                inset: 0;
-                z-index: -1;
-                pointer-events: none;
-                overflow: hidden;
-            }
-            .ambient::before {
-                content: "";
-                position: absolute;
-                top: -40%;
-                left: -20%;
-                width: 80vw;
-                height: 80vw;
-                background: radial-gradient(
-                    circle,
-                    rgba(245, 158, 11, 0.06) 0%,
-                    transparent 70%
-                );
-                animation: drift 25s ease-in-out infinite alternate;
-            }
-            .ambient::after {
-                content: "";
-                position: absolute;
-                bottom: -30%;
-                right: -15%;
-                width: 60vw;
-                height: 60vw;
-                background: radial-gradient(
-                    circle,
-                    rgba(251, 146, 60, 0.04) 0%,
-                    transparent 70%
-                );
-                animation: drift 20s ease-in-out infinite alternate-reverse;
-            }
-            @keyframes drift {
-                0% {
-                    transform: translate(0, 0) scale(1);
-                }
-                100% {
-                    transform: translate(5vw, 3vh) scale(1.1);
-                }
-            }
+    /* ─── reset ──────────────────────────────────────────── */
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior:smooth; }
+    body {
+      background:var(--bg); color:var(--text);
+      font-family:var(--font); font-size:13.5px; line-height:1.72;
+    }
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:var(--bg); }
+    ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+    a { color:var(--blue); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    code {
+      font-family:var(--font); font-size:.88em;
+      background:rgba(110,118,129,.1); padding:1px 5px;
+      border-radius:3px; color:var(--text-hi);
+    }
 
-            /* ── Layout ───────────────────────────────────────── */
-            .container {
-                max-width: 1100px;
-                margin: 0 auto;
-                padding: 0 24px;
-            }
-            section {
-                padding: 100px 0;
-            }
+    /* ─── layout ─────────────────────────────────────────── */
+    .wrap { max-width:860px; margin:0 auto; padding:0 22px; }
+    section { padding:52px 0; border-top:1px solid var(--border); }
+    section.hero { border-top:none; }
 
-            /* ── Nav ──────────────────────────────────────────── */
-            nav {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 100;
-                padding: 16px 0;
-                background: rgba(9, 9, 11, 0.8);
-                backdrop-filter: blur(20px);
-                border-bottom: 1px solid transparent;
-                transition: border-color 0.3s;
-            }
-            nav.scrolled {
-                border-bottom-color: var(--border);
-            }
-            nav .container {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }
-            .nav-logo {
-                font-size: 1.25rem;
-                font-weight: 800;
-                letter-spacing: -0.02em;
-                background: linear-gradient(
-                    135deg,
-                    var(--accent),
-                    var(--accent2)
-                );
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            }
-            .nav-links {
-                display: flex;
-                gap: 28px;
-                align-items: center;
-            }
-            .nav-links a {
-                font-size: 0.875rem;
-                font-weight: 500;
-                color: var(--text-dim);
-                transition: color 0.2s;
-            }
-            .nav-links a:hover {
-                color: var(--text);
-            }
+    /* ─── nav ────────────────────────────────────────────── */
+    nav {
+      position:sticky; top:0; z-index:100;
+      background:rgba(12,12,15,.95); backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--border);
+    }
+    nav .wrap { display:flex; align-items:center; gap:20px; height:42px; }
+    .nav-brand { color:var(--text-hi); font-weight:600; font-size:14px; flex-shrink:0; }
+    .nav-links { display:flex; gap:16px; font-size:12px; }
+    .nav-links a { color:var(--text-dim); }
+    .nav-links a:hover { color:var(--text); text-decoration:none; }
+    .nav-gh {
+      margin-left:auto; display:inline-flex; align-items:center; gap:5px;
+      color:var(--text-dim)!important; font-size:12px;
+      border:1px solid var(--border); padding:3px 10px; border-radius:4px;
+      transition:border-color .2s, color .2s;
+    }
+    .nav-gh:hover { color:var(--text-hi)!important; border-color:var(--border2); text-decoration:none!important; }
 
-            /* ── Modes Row (Out of the Box) ───────────────────── */
-            .modes-section {
-                text-align: center;
-                padding-top: 40px;
-            }
-            .modes-grid {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 16px;
-                margin-top: 60px;
-                max-width: 900px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-            .mode-card {
-                background: var(--bg-card);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                padding: 28px 20px;
-                text-align: center;
-                transition: all 0.3s;
-                position: relative;
-                overflow: hidden;
-            }
-            .mode-card::after {
-                content: "";
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 2px;
-                background: linear-gradient(
-                    90deg,
-                    transparent,
-                    var(--accent),
-                    transparent
-                );
-                opacity: 0;
-                transition: opacity 0.3s;
-            }
-            .mode-card:hover {
-                border-color: rgba(245, 158, 11, 0.3);
-                transform: translateY(-4px);
-                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-            }
-            .mode-card:hover::after {
-                opacity: 1;
-            }
-            .mode-icon {
-                font-size: 1.6rem;
-                margin-bottom: 14px;
-                display: block;
-            }
-            .mode-card h4 {
-                font-size: 1rem;
-                font-weight: 700;
-                margin-bottom: 6px;
-            }
-            .mode-cmd {
-                font-family: var(--mono);
-                font-size: 0.75rem;
-                color: var(--accent);
-                background: rgba(245, 158, 11, 0.08);
-                padding: 4px 10px;
-                border-radius: 6px;
-                display: inline-block;
-                margin-bottom: 10px;
-            }
-            .mode-card p {
-                font-size: 0.82rem;
-                color: var(--text-dim);
-                line-height: 1.5;
-            }
+    /* ─── hero ───────────────────────────────────────────── */
+    section.hero { padding:56px 0 48px; }
+    .ascii-logo {
+      color:var(--text-hi); font-size:11px; line-height:1.2;
+      white-space:pre; opacity:.45; margin-bottom:24px;
+    }
+    .hero-badge { font-size:11px; color:var(--text-dim); letter-spacing:.08em; margin-bottom:18px; }
+    .hero-badge .dot { color:var(--green); }
+    .hero h1 {
+      font-size:clamp(17px,2.8vw,24px); font-weight:600;
+      color:var(--text-hi); line-height:1.4; margin-bottom:14px;
+    }
+    .hero-sub { color:var(--text); max-width:560px; margin-bottom:28px; font-size:13.5px; }
 
-            /* ── Terminal Demo ────────────────────────────────── */
-            .terminal-demo {
-                max-width: 700px;
-                margin: 48px auto 0;
-                background: var(--bg-code);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                overflow: hidden;
-                text-align: left;
-            }
-            .terminal-header {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                padding: 10px 16px;
-                border-bottom: 1px solid var(--border);
-                background: rgba(255, 255, 255, 0.02);
-            }
-            .terminal-body {
-                padding: 20px;
-                font-family: var(--mono);
-                font-size: 0.82rem;
-                line-height: 1.8;
-                color: var(--text-code);
-            }
-            .terminal-body .t-prompt {
-                color: var(--accent);
-            }
-            .terminal-body .t-cmd {
-                color: var(--text);
-            }
-            .terminal-body .t-flag {
-                color: #c084fc;
-            }
-            .terminal-body .t-output {
-                color: var(--text-dim);
-            }
-            .terminal-body .t-success {
-                color: #34d399;
-            }
-            .terminal-body .t-tool {
-                color: #60a5fa;
-            }
+    /* install box */
+    .install-box {
+      background:var(--bg3); border:1px solid var(--border); border-radius:6px;
+      overflow:hidden; max-width:620px; margin-bottom:0;
+    }
+    .install-tabs { display:flex; border-bottom:1px solid var(--border); }
+    .itab {
+      padding:6px 13px; font-size:11px; color:var(--text-dim);
+      cursor:pointer; border:none; background:none; font-family:var(--font);
+      border-bottom:2px solid transparent; transition:color .15s;
+    }
+    .itab.on { color:var(--green); border-bottom-color:var(--green); }
+    .ipanel { display:none; padding:13px 15px; }
+    .ipanel.on { display:block; }
+    .iline {
+      display:flex; align-items:center; gap:8px;
+      cursor:pointer; user-select:none;
+    }
+    .iline .ps { color:var(--green); flex-shrink:0; }
+    .iline .ic { color:var(--text-hi); font-size:13px; flex:1; }
+    .copy-btn {
+      font-size:10px; color:var(--text-dim); cursor:pointer;
+      padding:2px 6px; border:1px solid var(--border); border-radius:3px;
+      background:none; font-family:var(--font); transition:color .15s; flex-shrink:0;
+    }
+    .copy-btn:hover { color:var(--text); }
+    .icomment { font-size:11px; color:var(--text-dim); margin-bottom:7px; font-style:italic; }
+    .ipanel pre { font-size:12px; color:var(--text-hi); }
 
-            /* ── Built-in Tools Compact Row ──────────────────── */
-            .tools-row {
-                display: flex;
-                justify-content: center;
-                gap: 12px;
-                margin-top: 40px;
-                flex-wrap: wrap;
-            }
-            .tool-pill {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                padding: 8px 16px;
-                background: var(--bg-card);
-                border: 1px solid var(--border);
-                border-radius: 100px;
-                font-family: var(--mono);
-                font-size: 0.78rem;
-                color: var(--text-code);
-                transition: all 0.2s;
-            }
-            .tool-pill:hover {
-                border-color: var(--accent);
-                background: var(--glow);
-            }
-            .tool-pill .pill-icon {
-                color: var(--accent);
-                font-size: 0.9rem;
-            }
+    /* ─── section chrome ─────────────────────────────────── */
+    .sec-label {
+      font-size:10px; text-transform:uppercase; letter-spacing:.14em;
+      color:var(--text-dim); margin-bottom:8px;
+    }
+    .sec-label::before { content:"# "; color:var(--green); }
+    h2.sec-title {
+      font-size:clamp(16px,2.4vw,21px); font-weight:600;
+      color:var(--text-hi); margin-bottom:10px;
+    }
+    .sec-desc { color:var(--text); margin-bottom:24px; max-width:580px; }
 
-            @media (max-width: 900px) {
-                .modes-grid {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-            }
-            @media (max-width: 600px) {
-                .modes-grid {
-                    grid-template-columns: 1fr;
-                }
-            }
-            .nav-cta {
-                padding: 8px 20px !important;
-                background: linear-gradient(
-                    135deg,
-                    var(--accent),
-                    var(--accent2)
-                ) !important;
-                color: var(--bg) !important;
-                -webkit-text-fill-color: var(--bg) !important;
-                border-radius: 8px;
-                font-weight: 600 !important;
-                transition:
-                    transform 0.2s,
-                    box-shadow 0.2s !important;
-            }
-            .nav-cta:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 24px var(--glow);
-            }
+    /* ─── demo gif ─────────────────────────────────────────── */
+    .demo-frame {
+      border:1px solid var(--border); border-radius:7px;
+      overflow:hidden; max-width:700px; display:block;
+    }
+    .demo-frame img {
+      display:block; width:100%; height:auto;
+    }
 
-            /* ── Hero ─────────────────────────────────────────── */
-            .hero {
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                text-align: center;
-                padding-top: 80px;
-                position: relative;
-            }
-            .hero-content {
-                max-width: 800px;
-                width: 100%;
-                padding: 0 24px;
-            }
-            .hero-badge {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                padding: 6px 16px;
-                border: 1px solid var(--border);
-                border-radius: 100px;
-                font-size: 0.8rem;
-                font-weight: 500;
-                color: var(--text-dim);
-                margin-bottom: 24px;
-                background: var(--bg-card);
-            }
-            .hero-logo {
-                margin-bottom: 20px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 8px;
-            }
-            .hero-logo svg {
-                filter: drop-shadow(0 0 24px rgba(245, 158, 11, 0.25));
-            }
-            .hero-logo .logo-name {
-                font-size: 1.6rem;
-                font-weight: 800;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                background: linear-gradient(
-                    135deg,
-                    var(--accent),
-                    var(--accent2)
-                );
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            }
-            .hero-badge .dot {
-                width: 6px;
-                height: 6px;
-                border-radius: 50%;
-                background: var(--accent);
-                animation: pulse-dot 2s ease-in-out infinite;
-            }
-            @keyframes pulse-dot {
-                0%,
-                100% {
-                    opacity: 1;
-                    box-shadow: 0 0 0 0 var(--glow-strong);
-                }
-                50% {
-                    opacity: 0.7;
-                    box-shadow: 0 0 0 6px transparent;
-                }
-            }
-            .hero h1 {
-                font-size: clamp(1.9rem, 8vw, 5.5rem);
-                font-weight: 900;
-                letter-spacing: -0.04em;
-                line-height: 1.05;
-                margin-bottom: 24px;
-            }
-            .hero h1 .gradient {
-                background: linear-gradient(
-                    135deg,
-                    var(--accent),
-                    var(--accent2),
-                    var(--accent3)
-                );
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            }
-            .hero p {
-                font-size: clamp(1.1rem, 2.5vw, 1.35rem);
-                color: var(--text-dim);
-                max-width: 580px;
-                margin: 0 auto 40px;
-                line-height: 1.7;
-            }
-            .hero-actions {
-                display: flex;
-                gap: 16px;
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-            .btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                padding: 14px 28px;
-                border-radius: 10px;
-                font-size: 1rem;
-                font-weight: 600;
-                transition: all 0.25s;
-                border: none;
-                cursor: pointer;
-                font-family: var(--font);
-            }
-            .btn-primary {
-                background: linear-gradient(
-                    135deg,
-                    var(--accent),
-                    var(--accent2)
-                );
-                color: var(--bg);
-                box-shadow: 0 0 0 0 var(--glow);
-            }
-            .btn-primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 32px var(--glow-strong);
-                color: var(--bg);
-            }
-            .btn-secondary {
-                background: var(--bg-card);
-                color: var(--text);
-                border: 1px solid var(--border);
-            }
-            .btn-secondary:hover {
-                border-color: var(--accent);
-                background: var(--glow);
-                color: var(--text);
-            }
+    /* ─── diff grid ──────────────────────────────────────── */
+    .diff-grid {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+      gap:1px; background:var(--border);
+      border:1px solid var(--border); border-radius:5px; overflow:hidden;
+    }
+    .diff-card { background:var(--bg2); padding:18px; transition:background .15s; }
+    .diff-card:hover { background:var(--bg3); }
+    .diff-card h3 { font-size:12.5px; color:var(--text-hi); margin-bottom:5px; font-weight:600; }
+    .diff-card p  { font-size:12px; color:var(--text-dim); line-height:1.65; }
+    .diff-card code { background:rgba(63,185,80,.07); color:var(--green); }
 
-            /* ── Install Banner ───────────────────────────────── */
-            .install-banner {
-                margin-top: 48px;
-                display: flex;
-                justify-content: center;
-            }
-            .install-cmd {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                padding: 12px 20px;
-                background: var(--bg-code);
-                border: 1px solid var(--border);
-                border-radius: 10px;
-                font-family: var(--mono);
-                font-size: 0.8rem;
-                color: var(--text-code);
-                cursor: pointer;
-                transition:
-                    border-color 0.2s,
-                    box-shadow 0.2s;
-                position: relative;
-                max-width: 100%;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-            .install-cmd:hover {
-                border-color: var(--accent);
-                box-shadow: 0 0 20px var(--glow);
-            }
-            .install-cmd .prompt {
-                color: var(--accent);
-                user-select: none;
-            }
-            .install-cmd .copy-hint {
-                font-family: var(--font);
-                font-size: 0.75rem;
-                color: var(--text-dim);
-                user-select: none;
-                padding: 2px 8px;
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 4px;
-            }
+    /* ─── modes table ────────────────────────────────────── */
+    .tbl-wrap { overflow-x:auto; }
+    .modes-table { width:100%; border-collapse:collapse; font-size:12.5px; }
+    .modes-table th {
+      text-align:left; color:var(--text-dim); font-weight:500;
+      padding:5px 10px; border-bottom:1px solid var(--border);
+      font-size:10px; text-transform:uppercase; letter-spacing:.08em;
+    }
+    .modes-table td { padding:8px 10px; border-bottom:1px solid rgba(28,33,48,.5); vertical-align:top; }
+    .modes-table tr:last-child td { border-bottom:none; }
+    .modes-table tr:hover td { background:var(--bg2); }
+    .modes-table td.cmd code { color:var(--green); background:rgba(63,185,80,.07); padding:2px 7px; border-radius:3px; font-size:12px; }
+    .badge { display:inline-block; font-size:10px; padding:1px 5px; border-radius:3px; margin-left:4px; }
+    .badge-ide { background:rgba(88,166,255,.1); color:var(--blue); }
 
-            /* ── Stats Row ────────────────────────────────────── */
-            .stats {
-                display: flex;
-                justify-content: center;
-                gap: 48px;
-                padding: 60px 0 0;
-                flex-wrap: wrap;
-            }
-            .stat {
-                text-align: center;
-            }
-            .stat-value {
-                font-size: 2.5rem;
-                font-weight: 800;
-                letter-spacing: -0.03em;
-                background: linear-gradient(
-                    135deg,
-                    var(--accent),
-                    var(--accent2)
-                );
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            }
-            .stat-label {
-                font-size: 0.85rem;
-                color: var(--text-dim);
-                margin-top: 4px;
-                font-weight: 500;
-            }
+    /* ─── providers ──────────────────────────────────────── */
+    .pchips { display:flex; flex-wrap:wrap; gap:7px; }
+    .pchip {
+      background:var(--bg2); border:1px solid var(--border); border-radius:4px;
+      padding:6px 12px; font-size:12px; color:var(--text);
+      display:flex; align-items:center; gap:6px;
+    }
+    .pchip .d { width:5px; height:5px; border-radius:50%; background:var(--green); flex-shrink:0; }
+    .pchip .d.dim { background:var(--text-dim); }
 
-            /* ── Section Headers ──────────────────────────────── */
-            .section-label {
-                font-size: 0.8rem;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.12em;
-                color: var(--accent);
-                margin-bottom: 12px;
-            }
-            .section-title {
-                font-size: clamp(1.8rem, 4vw, 2.5rem);
-                font-weight: 800;
-                letter-spacing: -0.03em;
-                margin-bottom: 16px;
-            }
-            .section-subtitle {
-                font-size: 1.1rem;
-                color: var(--text-dim);
-                max-width: 600px;
-                line-height: 1.7;
-            }
+    /* ─── terminal block (install steps) ─────────────────── */
+    .term {
+      background:var(--bg3); border:1px solid var(--border); border-radius:5px;
+      padding:13px 15px; font-size:12.5px; max-width:600px; margin-bottom:7px;
+    }
+    .term .ln  { display:flex; gap:7px; margin-bottom:2px; }
+    .term .ps  { color:var(--green); user-select:none; flex-shrink:0; }
+    .term .tc  { color:var(--text-hi); }
+    .term .out { color:var(--text-dim); padding-left:18px; font-size:12px; margin-bottom:2px; }
+    .term .ok  { color:var(--green);   padding-left:18px; font-size:12px; }
+    .term .cmt { color:var(--text-dim); font-style:italic; font-size:12px; }
 
-            /* ── Core Loop Section ────────────────────────────── */
-            .core-section .content {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 60px;
-                align-items: center;
-                margin-top: 60px;
-            }
-            .loop-visual {
-                position: relative;
-                padding: 32px;
-            }
-            .loop-ring {
-                width: 320px;
-                height: 320px;
-                margin: 0 auto;
-                position: relative;
-            }
-            .loop-ring svg {
-                width: 100%;
-                height: 100%;
-                animation: spin-slow 20s linear infinite;
-            }
-            @keyframes spin-slow {
-                to {
-                    transform: rotate(360deg);
-                }
-            }
-            .loop-center {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                text-align: center;
-            }
-            .loop-center .number {
-                font-size: 3.5rem;
-                font-weight: 900;
-                background: linear-gradient(
-                    135deg,
-                    var(--accent),
-                    var(--accent2)
-                );
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-                line-height: 1;
-            }
-            .loop-center .label {
-                font-size: 0.85rem;
-                color: var(--text-dim);
-                font-weight: 500;
-                margin-top: 4px;
-            }
-            .loop-steps {
-                position: absolute;
-                inset: 0;
-            }
-            .loop-step {
-                position: absolute;
-                background: var(--bg-card);
-                border: 1px solid var(--border);
-                border-radius: 10px;
-                padding: 10px 16px;
-                font-size: 0.8rem;
-                font-weight: 600;
-                white-space: nowrap;
-                transition: all 0.3s;
-            }
-            .loop-step:hover {
-                border-color: var(--accent);
-                box-shadow: 0 0 20px var(--glow);
-                transform: scale(1.05);
-            }
-            .loop-step:nth-child(1) {
-                top: -5%;
-                left: 50%;
-                transform: translateX(-50%);
-            }
-            .loop-step:nth-child(2) {
-                top: 35%;
-                right: -18%;
-            }
-            .loop-step:nth-child(3) {
-                bottom: -5%;
-                left: 50%;
-                transform: translateX(-50%);
-            }
-            .loop-step:nth-child(4) {
-                top: 35%;
-                left: -15%;
-            }
+    /* ─── code block ─────────────────────────────────────── */
+    .code-block { background:var(--bg3); border:1px solid var(--border); border-radius:5px; overflow:hidden; }
+    .code-head {
+      display:flex; align-items:center; gap:7px; padding:7px 13px;
+      border-bottom:1px solid var(--border); font-size:11px; color:var(--text-dim);
+    }
+    .code-head .fname { margin-left:auto; }
+    .dr { width:8px; height:8px; border-radius:50%; background:#5a3535; }
+    .dy { width:8px; height:8px; border-radius:50%; background:#4e4224; }
+    .dg { width:8px; height:8px; border-radius:50%; background:#2d4f31; }
+    .code-body { padding:14px; overflow-x:auto; }
+    .code-body pre { margin:0; font-size:12.5px; }
+    .st { color:#7aad8c; }  /* muted green for strings */
 
-            .loop-step:nth-child(1) .step-icon,
-            .loop-step:nth-child(2) .step-icon,
-            .loop-step:nth-child(3) .step-icon,
-            .loop-step:nth-child(4) .step-icon {
-                margin-right: 6px;
-            }
+    /* ─── docs grid ──────────────────────────────────────── */
+    .docs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(185px,1fr)); gap:7px; }
+    .doc-link {
+      background:var(--bg2); border:1px solid var(--border); border-radius:4px;
+      padding:11px 13px; display:block; transition:border-color .15s, background .15s;
+    }
+    .doc-link:hover { border-color:var(--border2); background:var(--bg3); text-decoration:none; }
+    .doc-link .dn { font-size:12.5px; color:var(--blue); margin-bottom:2px; }
+    .doc-link .dd { font-size:11px; color:var(--text-dim); }
 
-            .core-text h3 {
-                font-size: 1.5rem;
-                font-weight: 700;
-                margin-bottom: 16px;
-                letter-spacing: -0.02em;
-            }
-            .core-text p {
-                color: var(--text-dim);
-                line-height: 1.8;
-                margin-bottom: 20px;
-            }
-            .core-code {
-                background: var(--bg-code);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                padding: 20px;
-                font-family: var(--mono);
-                font-size: 0.8rem;
-                line-height: 1.7;
-                color: var(--text-code);
-                overflow-x: auto;
-            }
-            .core-code .kw {
-                color: #c084fc;
-            }
-            .core-code .fn {
-                color: #60a5fa;
-            }
-            .core-code .cm {
-                color: #525264;
-            }
-            .core-code .st {
-                color: #34d399;
-            }
-            .core-code .op {
-                color: var(--accent);
-            }
+    /* ─── changelog ──────────────────────────────────────── */
+    .cl-item { border-left:2px solid var(--border); padding-left:17px; margin-bottom:28px; position:relative; }
+    .cl-item::before {
+      content:''; width:7px; height:7px; border-radius:50%;
+      background:var(--green); position:absolute; left:-5px; top:7px;
+    }
+    .cl-item.old::before { background:var(--border); }
+    .cl-ver  { font-size:13px; color:var(--text-hi); font-weight:600; margin-bottom:2px; }
+    .cl-date { font-size:11px; color:var(--text-dim); margin-bottom:9px; }
+    .cl-tag  {
+      display:inline-block; font-size:10px; padding:1px 5px; border-radius:3px;
+      background:rgba(63,185,80,.1); color:var(--green); margin-left:5px; vertical-align:middle;
+    }
+    .cl-list { list-style:none; display:flex; flex-direction:column; gap:4px; }
+    .cl-list li { font-size:12px; color:var(--text); padding-left:13px; position:relative; }
+    .cl-list li::before { content:'─'; color:var(--text-dim); position:absolute; left:0; }
+    .cl-list li strong { color:var(--text-hi); }
+    .cl-list code { background:rgba(63,185,80,.07); color:var(--green); }
 
-            /* ── Features Grid ────────────────────────────────── */
-            .features-section {
-                text-align: center;
-            }
-            .features-grid {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 20px;
-                margin-top: 60px;
-            }
-            .feature-card {
-                background: var(--bg-card);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                padding: 32px 28px;
-                text-align: left;
-                transition: all 0.3s;
-                position: relative;
-                overflow: hidden;
-            }
-            .feature-card::before {
-                content: "";
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 2px;
-                background: linear-gradient(
-                    90deg,
-                    transparent,
-                    var(--accent),
-                    transparent
-                );
-                opacity: 0;
-                transition: opacity 0.3s;
-            }
-            .feature-card:hover {
-                border-color: rgba(245, 158, 11, 0.3);
-                transform: translateY(-4px);
-                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-            }
-            .feature-card:hover::before {
-                opacity: 1;
-            }
-            .feature-icon {
-                width: 44px;
-                height: 44px;
-                border-radius: 10px;
-                background: var(--glow);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 1.3rem;
-                margin-bottom: 20px;
-            }
-            .feature-card h3 {
-                font-size: 1.1rem;
-                font-weight: 700;
-                margin-bottom: 10px;
-                letter-spacing: -0.01em;
-            }
-            .feature-card p {
-                font-size: 0.9rem;
-                color: var(--text-dim);
-                line-height: 1.65;
-            }
+    /* ─── install steps ──────────────────────────────────── */
+    .step { margin-bottom:24px; }
+    .step-num { font-size:10px; color:var(--text-dim); margin-bottom:5px; text-transform:uppercase; letter-spacing:.08em; }
+    .step-num span { color:var(--green); }
+    .step-note { font-size:12px; color:var(--text-dim); margin-top:5px; }
 
-            /* ── Providers ────────────────────────────────────── */
-            .providers-section {
-                text-align: center;
-            }
-            .providers-row {
-                display: flex;
-                justify-content: center;
-                gap: 24px;
-                margin-top: 60px;
-                flex-wrap: wrap;
-            }
-            .provider-card {
-                background: var(--bg-card);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                padding: 28px 36px;
-                text-align: center;
-                min-width: 180px;
-                transition: all 0.3s;
-            }
-            .provider-card:hover {
-                border-color: var(--accent);
-                transform: translateY(-4px);
-                box-shadow: 0 8px 32px var(--glow);
-            }
-            .provider-logo {
-                font-size: 2rem;
-                margin-bottom: 12px;
-                display: block;
-            }
-            .provider-card h4 {
-                font-size: 1rem;
-                font-weight: 700;
-                margin-bottom: 6px;
-            }
-            .provider-card p {
-                font-size: 0.8rem;
-                color: var(--text-dim);
-            }
+    /* ─── cta ────────────────────────────────────────────── */
+    .cta-box { border:1px solid var(--border); border-radius:6px; padding:28px; text-align:center; }
+    .cta-box h2 { color:var(--text-hi); font-size:18px; font-weight:600; margin-bottom:7px; }
+    .cta-box p  { color:var(--text); font-size:13px; margin-bottom:18px; }
+    .btn-row { display:flex; gap:9px; justify-content:center; flex-wrap:wrap; }
+    .btn {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:7px 16px; border-radius:4px; font-size:12.5px;
+      font-family:var(--font); cursor:pointer; text-decoration:none!important;
+      border:1px solid transparent; transition:all .15s;
+    }
+    .btn-primary { background:var(--green); color:#0c0c0f; font-weight:700; border-color:var(--green); }
+    .btn-primary:hover { background:#4ec862; }
+    .btn-ghost { border-color:var(--border); color:var(--text); }
+    .btn-ghost:hover { border-color:var(--border2); color:var(--text-hi); }
 
-            /* ── Code Example ─────────────────────────────────── */
-            .code-section .content {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 60px;
-                align-items: start;
-                margin-top: 60px;
-            }
-            .code-block {
-                background: var(--bg-code);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                overflow: hidden;
-            }
-            .code-header {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                padding: 12px 16px;
-                border-bottom: 1px solid var(--border);
-                background: rgba(255, 255, 255, 0.02);
-            }
-            .code-dot {
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-            }
-            .code-dot:nth-child(1) {
-                background: #ef4444;
-            }
-            .code-dot:nth-child(2) {
-                background: #eab308;
-            }
-            .code-dot:nth-child(3) {
-                background: #22c55e;
-            }
-            .code-filename {
-                margin-left: 8px;
-                font-size: 0.75rem;
-                font-family: var(--mono);
-                color: var(--text-dim);
-            }
-            .code-body {
-                padding: 20px;
-                font-family: var(--mono);
-                font-size: 0.82rem;
-                line-height: 1.75;
-                color: var(--text-code);
-                overflow-x: auto;
-            }
-            .code-body .kw {
-                color: #c084fc;
-            }
-            .code-body .fn {
-                color: #60a5fa;
-            }
-            .code-body .cm {
-                color: #525264;
-            }
-            .code-body .st {
-                color: #34d399;
-            }
-            .code-body .op {
-                color: var(--accent);
-            }
-            .code-body .nb {
-                color: #f472b6;
-            }
-            .code-body .ln {
-                color: #333;
-                user-select: none;
-                margin-right: 16px;
-            }
+    /* ─── footer ─────────────────────────────────────────── */
+    footer { border-top:1px solid var(--border); padding:20px 0 28px; font-size:11.5px; color:var(--text-dim); }
+    footer .wrap { display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+    .f-brand { color:var(--text-hi); font-weight:600; }
+    .f-links { display:flex; gap:13px; margin-left:auto; flex-wrap:wrap; }
+    footer a { color:var(--text-dim); }
+    footer a:hover { color:var(--text); text-decoration:none; }
 
-            .code-desc h3 {
-                font-size: 1.5rem;
-                font-weight: 700;
-                letter-spacing: -0.02em;
-                margin-bottom: 16px;
-            }
-            .code-desc p {
-                color: var(--text-dim);
-                line-height: 1.8;
-                margin-bottom: 24px;
-            }
-            .code-features {
-                list-style: none;
-            }
-            .code-features li {
-                display: flex;
-                align-items: flex-start;
-                gap: 12px;
-                margin-bottom: 16px;
-                font-size: 0.95rem;
-                color: var(--text-dim);
-                line-height: 1.5;
-            }
-            .code-features li .check {
-                color: var(--accent);
-                font-weight: 700;
-                font-size: 1rem;
-                flex-shrink: 0;
-                margin-top: 1px;
-            }
+    /* ─── reveal ─────────────────────────────────────────── */
+    .reveal { opacity:0; transform:translateY(8px); transition:opacity .3s, transform .3s; }
+    .reveal.in { opacity:1; transform:none; }
 
-            /* ── Safety Section ───────────────────────────────── */
-            .safety-section {
-                text-align: center;
-            }
-            .safety-grid {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 20px;
-                margin-top: 60px;
-                max-width: 800px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-            .safety-card {
-                background: var(--bg-card);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                padding: 28px;
-                text-align: left;
-                transition: all 0.3s;
-            }
-            .safety-card:hover {
-                border-color: rgba(245, 158, 11, 0.2);
-                transform: translateY(-2px);
-            }
-            .safety-card h4 {
-                font-size: 1rem;
-                font-weight: 700;
-                margin-bottom: 8px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            .safety-card p {
-                font-size: 0.85rem;
-                color: var(--text-dim);
-                line-height: 1.6;
-            }
+    /* ─── responsive ─────────────────────────────────────── */
+    @media (max-width:600px) {
+      .ascii-logo { font-size:8px; }
+      .nav-links  { display:none; }
+      .diff-grid  { grid-template-columns:1fr; }
+      .docs-grid  { grid-template-columns:1fr 1fr; }
+    }
+    @media (max-width:380px) {
+      .ascii-logo { font-size:6px; }
+      .docs-grid  { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
 
-            /* ── CTA Section ──────────────────────────────────── */
-            .cta-section {
-                text-align: center;
-                padding: 120px 0;
-            }
-            .cta-box {
-                background: linear-gradient(
-                    135deg,
-                    rgba(245, 158, 11, 0.08),
-                    rgba(251, 146, 60, 0.04)
-                );
-                border: 1px solid rgba(245, 158, 11, 0.2);
-                border-radius: 20px;
-                padding: 64px 40px;
-            }
-            .cta-box h2 {
-                font-size: clamp(1.8rem, 4vw, 2.5rem);
-                font-weight: 800;
-                letter-spacing: -0.03em;
-                margin-bottom: 16px;
-            }
-            .cta-box p {
-                color: var(--text-dim);
-                font-size: 1.1rem;
-                margin-bottom: 32px;
-                max-width: 500px;
-                margin-left: auto;
-                margin-right: auto;
-            }
+<!-- ═══ Nav ═══════════════════════════════════════════════ -->
+<nav>
+  <div class="wrap">
+    <span class="nav-brand">aar</span>
+    <div class="nav-links">
+      <a href="#what">what</a>
+      <a href="#demo">demo</a>
+      <a href="#modes">modes</a>
+      <a href="#install">install</a>
+      <a href="#docs">docs</a>
+      <a href="#changelog">changelog</a>
+    </div>
+    <a href="https://github.com/fischerf/aar" class="nav-gh" target="_blank" rel="noopener">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.59 9.59 0 012.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+      GitHub
+    </a>
+  </div>
+</nav>
 
-            /* ── Footer ───────────────────────────────────────── */
-            footer {
-                padding: 40px 0;
-                border-top: 1px solid var(--border);
-                text-align: center;
-            }
-            footer p {
-                font-size: 0.85rem;
-                color: var(--text-dim);
-            }
-            footer a {
-                color: var(--accent);
-            }
+<!-- ═══ Hero ═══════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="wrap">
+    <pre class="ascii-logo reveal" aria-label="AAR"> █████╗  █████╗ ██████╗
+██╔══██╗██╔══██╗██╔══██╗
+███████║███████║██████╔╝
+██╔══██║██╔══██║██╔══██╗
+██║  ██║██║  ██║██║  ██║
+╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝</pre>
 
-            /* ── Scroll Animations ────────────────────────────── */
-            .reveal {
-                opacity: 0;
-                transform: translateY(30px);
-                transition:
-                    opacity 0.7s ease,
-                    transform 0.7s ease;
-            }
-            .reveal.visible {
-                opacity: 1;
-                transform: translateY(0);
-            }
+    <div class="hero-badge reveal">
+      <span class="dot">●</span> adaptive action &amp; reasoning &nbsp;·&nbsp; v0.3.2 &nbsp;·&nbsp; apache 2.0
+    </div>
 
-            /* ── Responsive ───────────────────────────────────── */
-            @media (max-width: 900px) {
-                .core-section .content,
-                .code-section .content {
-                    grid-template-columns: 1fr;
-                    gap: 40px;
-                }
-                .features-grid {
-                    grid-template-columns: 1fr 1fr;
-                }
-                .loop-ring {
-                    width: 260px;
-                    height: 260px;
-                }
-                .loop-step {
-                    font-size: 0.7rem;
-                    padding: 8px 12px;
-                }
-            }
-            @media (max-width: 600px) {
-                .features-grid {
-                    grid-template-columns: 1fr;
-                }
-                .safety-grid {
-                    grid-template-columns: 1fr;
-                }
-                .providers-row {
-                    gap: 12px;
-                }
-                .provider-card {
-                    min-width: 140px;
-                    padding: 20px;
-                }
-                .stats {
-                    gap: 28px;
-                }
-                .nav-links a:not(.nav-cta) {
-                    display: none;
-                }
-                section {
-                    padding: 70px 0;
-                }
-                .hero {
-                    min-height: 90vh;
-                    padding-top: 72px;
-                }
-                .hero-content {
-                    padding: 0 16px;
-                }
-                .hero p {
-                    font-size: 1rem;
-                    margin-bottom: 28px;
-                }
-                .hero-actions {
-                    gap: 12px;
-                }
-                .btn {
-                    padding: 12px 20px;
-                    font-size: 0.9rem;
-                }
-                .install-cmd {
-                    white-space: normal;
-                    word-break: break-all;
-                    line-height: 1.6;
-                    padding: 12px 14px;
-                }
-                .install-cmd .copy-hint {
-                    display: none;
-                }
-                .stats {
-                    padding-top: 40px;
-                    gap: 20px;
-                }
-                .stat-value {
-                    font-size: 2rem;
-                }
-            }
-            @media (max-width: 400px) {
-                .hero h1 {
-                    font-size: clamp(1.6rem, 9vw, 2rem);
-                }
-                .hero-badge {
-                    font-size: 0.72rem;
-                    padding: 5px 12px;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="ambient"></div>
+    <h1 class="reveal">built a lightweight AI agent.</h1>
 
-        <!-- ═══ Nav ═══════════════════════════════════════════ -->
-        <nav id="nav">
-            <div class="container">
-                <div class="nav-logo">aar</div>
-                <div class="nav-links">
-                    <a href="#agent">Agent</a>
-                    <a href="#core">Under the Hood</a>
-                    <a href="#features">Features</a>
-                    <a href="#providers">Providers</a>
-                    <a href="#quickstart">Build your own</a>
-                    <a href="https://github.com/fischerf/aar" class="nav-cta"
-                        >GitHub</a
-                    >
-                </div>
-            </div>
-        </nav>
+    <p class="hero-sub reveal">
+      open source python. ~80-line core loop. swap providers mid-session.<br>
+      does what claude code, codex, and pi mono do &mdash; maybe a bit more.<br>
+      if you want something you can actually read and modify, might be useful.
+    </p>
 
-        <!-- ═══ Hero ══════════════════════════════════════════ -->
-        <section class="hero" id="hero">
-            <div class="hero-content">
-                <div class="hero-logo">
-                    <svg
-                        width="64"
-                        height="64"
-                        viewBox="0 0 64 64"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <!-- Eagle silhouette -->
-                        <path
-                            d="M32 6 C28 6, 22 10, 20 16 C18 12, 12 8, 6 10 C10 14, 14 20, 16 24 C12 22, 6 22, 2 24 C6 28, 14 30, 18 30 C14 34, 10 42, 10 48 C14 44, 20 40, 24 38 L28 56 C29 58, 31 58, 32 58 C33 58, 35 58, 36 56 L40 38 C44 40, 50 44, 54 48 C54 42, 50 34, 46 30 C50 30, 58 28, 62 24 C58 22, 52 22, 48 24 C50 20, 54 14, 58 10 C52 8, 46 12, 44 16 C42 10, 36 6, 32 6Z"
-                            fill="url(#eagle-grad)"
-                        />
-                        <!-- Eye -->
-                        <circle cx="28" cy="18" r="2" fill="#09090b" />
-                        <circle cx="28.5" cy="17.5" r="0.7" fill="#fbbf24" />
-                        <defs>
-                            <linearGradient
-                                id="eagle-grad"
-                                x1="0"
-                                y1="0"
-                                x2="64"
-                                y2="64"
-                            >
-                                <stop offset="0%" stop-color="#fbbf24" />
-                                <stop offset="50%" stop-color="#f59e0b" />
-                                <stop offset="100%" stop-color="#d97706" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                    <span class="logo-name">Aar</span>
-                </div>
-                <div class="hero-badge">
-                    <span class="dot"></span>
-                    v0.3.1 &mdash; Apache 2.0
-                </div>
-                <h1>
-                    Install. Run.<br />
-                    <span class="gradient"
-                        >Aar: tiny agent with no baggage.</span
-                    >
-                </h1>
-                <p>
-                    Aar is a ready-to-use lean AI agent with chat, TUI, and web
-                    interfaces. Built-in tools, persistent sessions, and MCP
-                    support &mdash; including GitLab. Pick your provider. Start
-                    talking. It just works.
-                </p>
-                <div class="hero-actions">
-                    <a
-                        href="https://github.com/fischerf/aar"
-                        class="btn btn-primary"
-                    >
-                        <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                        >
-                            <path
-                                d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
-                            />
-                        </svg>
-                        View on GitHub
-                    </a>
-                    <a href="#agent" class="btn btn-secondary">
-                        See it in action
-                    </a>
-                </div>
-                <div class="install-banner">
-                    <div
-                        class="install-cmd"
-                        onclick="copyInstall(this)"
-                        title="Click to copy"
-                    >
-                        <span class="prompt">$</span>
-                        <span
-                            >git clone https://github.com/fischerf/aar && cd aar
-                            && pip install -e ".[all]"</span
-                        >
-                        <span class="copy-hint">copy</span>
-                    </div>
-                </div>
-                <div class="stats">
-                    <div class="stat">
-                        <div class="stat-value">3</div>
-                        <div class="stat-label">Interfaces</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">5</div>
-                        <div class="stat-label">Built-in Tools</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">4</div>
-                        <div class="stat-label">Providers</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">0</div>
-                        <div class="stat-label">Vendor Lock-in</div>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <div class="install-box reveal">
+      <div class="install-tabs">
+        <button class="itab on" onclick="switchTab(this,'src')">source</button>
+        <button class="itab" onclick="switchTab(this,'ollama')">local / ollama</button>
+        <button class="itab" onclick="switchTab(this,'ide')">zed / vscode</button>
+      </div>
+      <div class="ipanel on" id="tab-src">
+        <div class="iline" onclick="copyCmd(this)" title="click to copy">
+          <span class="ps">$</span>
+          <span class="ic">git clone https://github.com/fischerf/aar &amp;&amp; cd aar &amp;&amp; pip install -e ".[all]"</span>
+          <button class="copy-btn">copy</button>
+        </div>
+      </div>
+      <div class="ipanel" id="tab-ollama">
+        <div class="icomment"># no api key — fully local</div>
+        <div class="iline" onclick="copyCmd(this)" title="click to copy">
+          <span class="ps">$</span>
+          <span class="ic">ollama pull llama3 &amp;&amp; aar chat --provider ollama --model llama3</span>
+          <button class="copy-btn">copy</button>
+        </div>
+      </div>
+      <div class="ipanel" id="tab-ide">
+        <div class="icomment"># ~/.config/zed/settings.json  (or %appdata%\zed\settings.json on windows)</div>
+        <pre>"agent_servers": { "Aar": { "type": "custom", "command": "aar", "args": ["acp"] } }</pre>
+      </div>
+    </div>
+  </div>
+</section>
 
-        <!-- ═══ Out of the Box ═══════════════════════════════ -->
-        <section class="modes-section" id="agent">
-            <div class="container">
-                <div class="section-label reveal">Out of the Box</div>
-                <div class="section-title reveal">
-                    Not a framework demo. A working agent.
-                </div>
-                <div class="section-subtitle reveal" style="margin: 0 auto">
-                    Install, pick a provider, and go. Interactive chat, a
-                    polished TUI with token counting, an HTTP API with SSE
-                    streaming, or one-shot batch runs. All with persistent,
-                    resumable sessions.
-                </div>
-                <div class="modes-grid">
-                    <div class="mode-card reveal">
-                        <span class="mode-icon">
-                            <svg
-                                width="28"
-                                height="28"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="2"
-                            >
-                                <polyline points="4 17 10 11 4 5" />
-                                <line x1="12" y1="19" x2="20" y2="19" />
-                            </svg>
-                        </span>
-                        <div class="mode-cmd">aar chat</div>
-                        <h4>Interactive Chat</h4>
-                        <p>
-                            Multi-turn conversations with tool use, session
-                            save, and resume
-                        </p>
-                    </div>
-                    <div class="mode-card reveal">
-                        <span class="mode-icon">
-                            <svg
-                                width="28"
-                                height="28"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="2"
-                            >
-                                <rect
-                                    x="2"
-                                    y="3"
-                                    width="20"
-                                    height="14"
-                                    rx="2"
-                                />
-                                <path d="M8 21h8M12 17v4" />
-                            </svg>
-                        </span>
-                        <div class="mode-cmd">aar tui</div>
-                        <h4>Rich TUI</h4>
-                        <p>
-                            Markdown rendering, tool call panels, live token
-                            counter, status bar
-                        </p>
-                    </div>
-                    <div class="mode-card reveal">
-                        <span class="mode-icon">
-                            <svg
-                                width="28"
-                                height="28"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="2"
-                            >
-                                <path
-                                    d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9m-9 9a9 9 0 0 1 9-9"
-                                />
-                            </svg>
-                        </span>
-                        <div class="mode-cmd">aar serve</div>
-                        <h4>Web API</h4>
-                        <p>
-                            HTTP + SSE streaming. POST to chat, subscribe to
-                            events in real-time
-                        </p>
-                    </div>
-                    <div class="mode-card reveal">
-                        <span class="mode-icon">
-                            <svg
-                                width="28"
-                                height="28"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="2"
-                            >
-                                <path
-                                    d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"
-                                />
-                            </svg>
-                        </span>
-                        <div class="mode-cmd">aar run</div>
-                        <h4>One-Shot</h4>
-                        <p>
-                            Single task execution. Perfect for scripts, CI
-                            pipelines, and automation
-                        </p>
-                    </div>
-                </div>
+<!-- ═══ Demo ════════════════════════════════════════════════ -->
+<section id="demo">
+  <div class="wrap">
+    <div class="sec-label reveal">in action</div>
+    <p class="sec-desc reveal">
+      a typical session — the agent reads what it needs to, makes the change, checks its work.
+    </p>
 
-                <!-- Terminal demo -->
-                <div class="terminal-demo reveal">
-                    <div class="terminal-header">
-                        <div class="code-dot"></div>
-                        <div class="code-dot"></div>
-                        <div class="code-dot"></div>
-                        <span class="code-filename">terminal</span>
-                    </div>
-                    <div class="terminal-body">
-                        <span class="t-prompt">$</span>
-                        <span class="t-cmd">git clone</span>
-                        <span class="t-flag"
-                            >https://github.com/fischerf/aar</span
-                        >
-                        <span class="t-cmd">&amp;&amp; cd aar</span><br />
-                        <span class="t-prompt">$</span>
-                        <span class="t-cmd">pip install -e</span>
-                        <span class="t-flag">".[anthropic,mcp]"</span><br />
-                        <span class="t-prompt">$</span>
-                        <span class="t-cmd">aar chat</span>
-                        <span class="t-flag"
-                            >--mcp-config tools/mcp_config.json</span
-                        ><br />
-                        <span class="t-output"
-                            >Session
-                            <span style="color: #f59e0b">a3f8c1</span> started
-                            &middot; Claude Sonnet &middot; 5 built-in + 7 MCP
-                            tools loaded</span
-                        ><br />
-                        <br />
-                        <span class="t-success">you &rsaquo;</span>
-                        <span class="t-cmd"
-                            >List my open GitLab issues and read the latest
-                            one</span
-                        ><br />
-                        <br />
-                        <span class="t-output"
-                            >&nbsp;&nbsp;&#9656; calling
-                            <span class="t-tool">gitlab_list_my_issues</span>
-                            <span style="color: #525264">(0.3s)</span></span
-                        ><br />
-                        <span class="t-output"
-                            >&nbsp;&nbsp;&#9656; calling
-                            <span class="t-tool">gitlab_read_issue</span>
-                            <span style="color: #525264">(0.2s)</span></span
-                        ><br />
-                        <br />
-                        <span class="t-output"
-                            >Found 3 open issues. The latest is
-                            <strong style="color: var(--text)"
-                                >#42 &mdash; Fix pagination in API</strong
-                            >
-                            ...</span
-                        ><br />
-                    </div>
-                </div>
+    <div class="demo-frame reveal">
+      <img src="aar.gif" alt="aar TUI in action" loading="lazy"/>
+    </div>
+  </div>
+</section>
 
-                <!-- Built-in tools pills -->
-                <div class="tools-row reveal">
-                    <div class="tool-pill">
-                        <span class="pill-icon">&#9656;</span> bash
-                    </div>
-                    <div class="tool-pill">
-                        <span class="pill-icon">&#9656;</span> read_file
-                    </div>
-                    <div class="tool-pill">
-                        <span class="pill-icon">&#9656;</span> write_file
-                    </div>
-                    <div class="tool-pill">
-                        <span class="pill-icon">&#9656;</span> edit_file
-                    </div>
-                    <div class="tool-pill">
-                        <span class="pill-icon">&#9656;</span> list_directory
-                    </div>
-                    <div
-                        class="tool-pill"
-                        style="
-                            border-color: rgba(245, 158, 11, 0.3);
-                            color: var(--accent);
-                        "
-                    >
-                        + any MCP server
-                    </div>
-                </div>
-            </div>
-        </section>
+<!-- ═══ What ════════════════════════════════════════════════ -->
+<section id="what">
+  <div class="wrap">
+    <div class="sec-label reveal">what it is</div>
+    <h2 class="sec-title reveal">a thin, readable agent.</h2>
+    <p class="sec-desc reveal">
+      most agent frameworks are opaque. aar isn't. open <code>agent/core/loop.py</code> and read the whole thing.
+      no magic, no framework soup. extend it to fit how you actually work.
+    </p>
 
-        <!-- ═══ Core Loop ════════════════════════════════════ -->
-        <section class="core-section" id="core">
-            <div class="container">
-                <div class="section-label reveal">Under the Hood</div>
-                <div class="section-title reveal">
-                    Also a framework. A tiny one.
-                </div>
-                <div class="section-subtitle reveal">
-                    Aar is a working agent &mdash; but it's also a framework you
-                    can build on. The entire core loop fits in your head and on
-                    a single screen. No magic. No bloat.
-                </div>
-                <div class="content">
-                    <div class="loop-visual reveal">
-                        <div class="loop-ring">
-                            <svg viewBox="0 0 320 320" fill="none">
-                                <circle
-                                    cx="160"
-                                    cy="160"
-                                    r="140"
-                                    stroke="url(#ring-grad)"
-                                    stroke-width="1.5"
-                                    stroke-dasharray="6 8"
-                                    opacity=".5"
-                                />
-                                <circle
-                                    cx="160"
-                                    cy="160"
-                                    r="110"
-                                    stroke="url(#ring-grad2)"
-                                    stroke-width="1"
-                                    stroke-dasharray="4 6"
-                                    opacity=".3"
-                                />
-                                <defs>
-                                    <linearGradient
-                                        id="ring-grad"
-                                        x1="0"
-                                        y1="0"
-                                        x2="320"
-                                        y2="320"
-                                    >
-                                        <stop
-                                            offset="0%"
-                                            stop-color="#f59e0b"
-                                        />
-                                        <stop
-                                            offset="100%"
-                                            stop-color="#fb923c"
-                                        />
-                                    </linearGradient>
-                                    <linearGradient
-                                        id="ring-grad2"
-                                        x1="320"
-                                        y1="0"
-                                        x2="0"
-                                        y2="320"
-                                    >
-                                        <stop
-                                            offset="0%"
-                                            stop-color="#f59e0b"
-                                            stop-opacity=".5"
-                                        />
-                                        <stop
-                                            offset="100%"
-                                            stop-color="#fb923c"
-                                            stop-opacity=".2"
-                                        />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                            <div class="loop-center">
-                                <div class="number">~80</div>
-                                <div class="label">lines of code</div>
-                            </div>
-                            <div class="loop-steps">
-                                <div class="loop-step">
-                                    <span class="step-icon">&#x25B6;</span> Call
-                                    LLM
-                                </div>
-                                <div class="loop-step">
-                                    <span class="step-icon">&#x2699;</span>
-                                    Parse Tools
-                                </div>
-                                <div class="loop-step">
-                                    <span class="step-icon">&#x26A1;</span>
-                                    Execute
-                                </div>
-                                <div class="loop-step">
-                                    <span class="step-icon">&#x21BB;</span> Feed
-                                    Back
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="core-text reveal">
-                        <h3>Readable. Debuggable. Yours.</h3>
-                        <p>
-                            Most frameworks bury their runtime under layers of
-                            abstraction. Aar does the opposite &mdash; the core
-                            loop is ~80 lines of plain Python. Every LLM call,
-                            every tool execution, every event is visible and
-                            timed.
-                        </p>
-                        <div class="core-code">
-                            <span class="kw">while not</span> done
-                            <span class="kw">and</span> step &lt; max_steps:<br />
-                            &nbsp;&nbsp;response =
-                            <span class="kw">await</span> provider.<span
-                                class="fn"
-                                >complete</span
-                            >(messages, tools)<br />
-                            <br />
-                            &nbsp;&nbsp;<span class="kw">if</span>
-                            response.tool_calls:<br />
-                            &nbsp;&nbsp;&nbsp;&nbsp;results =
-                            <span class="kw">await</span> executor.<span
-                                class="fn"
-                                >execute</span
-                            >(tool_calls)<br />
-                            &nbsp;&nbsp;&nbsp;&nbsp;session.<span class="fn"
-                                >append</span
-                            >(results)<br />
-                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw"
-                                >continue</span
-                            ><br />
-                            <br />
-                            &nbsp;&nbsp;session.<span class="fn">append</span
-                            >(response) &nbsp;<span class="cm"># done</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <div class="diff-grid reveal">
+      <div class="diff-card">
+        <h3>thin core</h3>
+        <p>~80-line main loop. the entire execution path fits in your head. <code>agent/core/loop.py</code></p>
+      </div>
+      <div class="diff-card">
+        <h3>any provider</h3>
+        <p>anthropic, openai, gemini, ollama, or any openai-compatible endpoint. switch with <code>/model</code> mid-session.</p>
+      </div>
+      <div class="diff-card">
+        <h3>sandboxed</h3>
+        <p>path restrictions, command deny-lists, approval gates. wsl / docker / landlock sandbox modes built in.</p>
+      </div>
+      <div class="diff-card">
+        <h3>cost-aware</h3>
+        <p>live token + cost tracking. configurable budget limits. warns before you burn through your credits.</p>
+      </div>
+      <div class="diff-card">
+        <h3>typed events</h3>
+        <p>every event, tool call, and result is a pydantic model. no raw dicts. serializable, debuggable.</p>
+      </div>
+      <div class="diff-card">
+        <h3>extensible</h3>
+        <p>three-tier extension api — global, per-user, per-project. event hooks, custom tools, slash-commands.</p>
+      </div>
+      <div class="diff-card">
+        <h3>persistent sessions</h3>
+        <p>every run saved as jsonl. resumable. forkable from any point. your history is your audit trail.</p>
+      </div>
+      <div class="diff-card">
+        <h3>ide integration</h3>
+        <p>zed and vscode via the agent client protocol. direct stdio — no cloud relay, no port needed.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-        <!-- ═══ Features ═════════════════════════════════════ -->
-        <section class="features-section" id="features">
-            <div class="container">
-                <div class="section-label reveal">Features</div>
-                <div class="section-title reveal">
-                    Everything you need. Nothing you don't.
-                </div>
-                <div class="section-subtitle reveal" style="margin: 0 auto">
-                    Each piece is modular. Use what you need, swap what you
-                    want, extend what's missing.
-                </div>
-                <div class="features-grid">
-                    <div class="feature-card reveal">
-                        <div class="feature-icon">
-                            <svg
-                                width="22"
-                                height="22"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="2"
-                            >
-                                <rect
-                                    x="2"
-                                    y="3"
-                                    width="20"
-                                    height="14"
-                                    rx="2"
-                                />
-                                <path d="M8 21h8M12 17v4" />
-                            </svg>
-                        </div>
-                        <h3>Typed Event Model</h3>
-                        <p>
-                            Every message, tool call, and result is a typed,
-                            serializable event. Perfect for replay, debugging,
-                            and audit trails.
-                        </p>
-                    </div>
-                    <div class="feature-card reveal">
-                        <div class="feature-icon">
-                            <svg
-                                width="22"
-                                height="22"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="2"
-                            >
-                                <path
-                                    d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-                                />
-                            </svg>
-                        </div>
-                        <h3>Safe by Default</h3>
-                        <p>
-                            Path restrictions, command deny-lists, approval
-                            gates, sandboxed execution. Safety is declarative
-                            &mdash; not bolted on.
-                        </p>
-                    </div>
-                    <div class="feature-card reveal">
-                        <div class="feature-icon">
-                            <svg
-                                width="22"
-                                height="22"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="2"
-                            >
-                                <path
-                                    d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"
-                                />
-                            </svg>
-                        </div>
-                        <h3>Pluggable Transports</h3>
-                        <p>
-                            CLI, Rich TUI, web API with SSE, or embed in your
-                            own code. Same agent, different interfaces &mdash;
-                            zero rewiring.
-                        </p>
-                    </div>
-                    <div class="feature-card reveal">
-                        <div class="feature-icon">
-                            <svg
-                                width="22"
-                                height="22"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="2"
-                            >
-                                <circle cx="12" cy="12" r="10" />
-                                <path d="M12 6v6l4 2" />
-                            </svg>
-                        </div>
-                        <h3>Observable</h3>
-                        <p>
-                            Every provider call and tool execution is timed.
-                            Sessions carry stable trace IDs. Built-in metrics
-                            &mdash; no extra wiring.
-                        </p>
-                    </div>
-                    <div class="feature-card reveal">
-                        <div class="feature-icon">
-                            <svg
-                                width="22"
-                                height="22"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="2"
-                            >
-                                <path
-                                    d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9m-9 9a9 9 0 0 1 9-9"
-                                />
-                            </svg>
-                        </div>
-                        <h3>MCP Support</h3>
-                        <p>
-                            Connect GitHub, databases, file systems &mdash; any
-                            MCP server becomes native tools. Stdio and HTTP
-                            transports built-in.
-                        </p>
-                    </div>
-                    <div class="feature-card reveal">
-                        <div class="feature-icon">
-                            <svg
-                                width="22"
-                                height="22"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="2"
-                            >
-                                <path
-                                    d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-                                />
-                                <path d="M17 21v-8H7v8M7 3v5h8" />
-                            </svg>
-                        </div>
-                        <h3>Persistent Sessions</h3>
-                        <p>
-                            JSONL-based storage. Resume any conversation.
-                            Compact old sessions. Every run is replayable and
-                            auditable.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
+<!-- ═══ Modes ═══════════════════════════════════════════════ -->
+<section id="modes">
+  <div class="wrap">
+    <div class="sec-label reveal">modes</div>
+    <h2 class="sec-title reveal">seven ways to run it.</h2>
 
-        <!-- ═══ Providers ═════════════════════════════════════ -->
-        <section class="providers-section" id="providers">
-            <div class="container">
-                <div class="section-label reveal">Providers</div>
-                <div class="section-title reveal">
-                    One interface. Any model.
-                </div>
-                <div class="section-subtitle reveal" style="margin: 0 auto">
-                    Write your agent once. Run it on Claude, GPT-4o, Llama, or
-                    any OpenAI-compatible API. Switch providers with a single
-                    config change.
-                </div>
-                <div class="providers-row">
-                    <div class="provider-card reveal">
-                        <span class="provider-logo">
-                            <svg
-                                width="32"
-                                height="32"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="1.5"
-                            >
-                                <path
-                                    d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                                />
-                            </svg>
-                        </span>
-                        <h4>Anthropic</h4>
-                        <p>Claude Sonnet, Opus<br />Thinking blocks</p>
-                    </div>
-                    <div class="provider-card reveal">
-                        <span class="provider-logo">
-                            <svg
-                                width="32"
-                                height="32"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="1.5"
-                            >
-                                <circle cx="12" cy="12" r="3" />
-                                <path
-                                    d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-                                />
-                            </svg>
-                        </span>
-                        <h4>OpenAI</h4>
-                        <p>GPT-5.x<br />Reasoning models</p>
-                    </div>
-                    <div class="provider-card reveal">
-                        <span class="provider-logo">
-                            <svg
-                                width="32"
-                                height="32"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="1.5"
-                            >
-                                <rect
-                                    x="4"
-                                    y="4"
-                                    width="16"
-                                    height="16"
-                                    rx="2"
-                                />
-                                <path d="M9 9h6M9 12h6M9 15h4" />
-                            </svg>
-                        </span>
-                        <h4>Ollama</h4>
-                        <p>Llama, Qwen, DeepSeek<br />Run locally</p>
-                    </div>
-                    <div class="provider-card reveal">
-                        <span class="provider-logo">
-                            <svg
-                                width="32"
-                                height="32"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="1.5"
-                            >
-                                <path
-                                    d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
-                                />
-                                <path
-                                    d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
-                                />
-                            </svg>
-                        </span>
-                        <h4>Generic</h4>
-                        <p>Any OpenAI-compatible<br />Azure, Together, etc.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <div class="tbl-wrap reveal">
+      <table class="modes-table">
+        <thead>
+          <tr><th>command</th><th>use case</th><th>notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="cmd"><code>aar run "…"</code></td>
+            <td>ci / automation</td>
+            <td>one-shot, runs to completion, exits.</td>
+          </tr>
+          <tr>
+            <td class="cmd"><code>aar chat</code></td>
+            <td>interactive cli</td>
+            <td>conversational loop with approval prompts.</td>
+          </tr>
+          <tr>
+            <td class="cmd"><code>aar tui</code></td>
+            <td>tui</td>
+            <td>rich tui with live token counters.</td>
+          </tr>
+          <tr>
+            <td class="cmd"><code>aar tui --fixed</code></td>
+            <td>full-screen tui</td>
+            <td>textual ui — fixed bars, mouse support, file picker. open-source equivalent of claude code / codex.</td>
+          </tr>
+          <tr>
+            <td class="cmd"><code>aar serve</code></td>
+            <td>http api</td>
+            <td>sse streaming, embeddable as asgi app.</td>
+          </tr>
+          <tr>
+            <td class="cmd"><code>aar acp</code> <span class="badge badge-ide">ide</span></td>
+            <td>zed / vscode</td>
+            <td>acp stdio agent. editor connects directly.</td>
+          </tr>
+          <tr>
+            <td class="cmd"><code>aar acp --http</code></td>
+            <td>remote acp</td>
+            <td>acp over http/sse for remote or programmatic clients.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
 
-        <!-- ═══ Quickstart ════════════════════════════════════ -->
-        <section class="code-section" id="quickstart">
-            <div class="container">
-                <div class="section-label reveal">Embed It</div>
-                <div class="section-title reveal">
-                    Or build your own agent in 10 lines.
-                </div>
-                <div class="content">
-                    <div class="code-block reveal">
-                        <div class="code-header">
-                            <div class="code-dot"></div>
-                            <div class="code-dot"></div>
-                            <div class="code-dot"></div>
-                            <span class="code-filename">my_agent.py</span>
-                        </div>
-                        <div class="code-body">
-                            <span class="kw">from</span> agent
-                            <span class="kw">import</span> Agent, AgentConfig<br />
-                            <span class="kw">from</span> agent.providers
-                            <span class="kw">import</span>
-                            AnthropicProvider<br />
-                            <br />
-                            agent = <span class="fn">Agent</span>(<br />
-                            &nbsp;&nbsp;config=<span class="fn"
-                                >AgentConfig</span
-                            >(<br />
-                            &nbsp;&nbsp;&nbsp;&nbsp;provider=<span class="fn"
-                                >AnthropicProvider</span
-                            >(),<br />
-                            &nbsp;&nbsp;&nbsp;&nbsp;system_prompt=<span
-                                class="st"
-                                >"You are a helpful assistant."</span
-                            >,<br />
-                            &nbsp;&nbsp;)<br />
-                            )<br />
-                            <br />
-                            result = <span class="kw">await</span> agent.<span
-                                class="fn"
-                                >run</span
-                            >(<span class="st"
-                                >"What can you help me with?"</span
-                            >)<br />
-                            <span class="nb">print</span>(result.content)
-                        </div>
-                    </div>
-                    <div class="code-desc reveal">
-                        <h3>Simple by design. Powerful by default.</h3>
-                        <p>
-                            Create an agent in a few lines. Add tools with a
-                            decorator. Swap providers with a single import. No
-                            ceremony, no boilerplate.
-                        </p>
-                        <ul class="code-features">
-                            <li>
-                                <span class="check">&#10003;</span>
-                                <span
-                                    ><strong>Custom tools</strong> &mdash;
-                                    register with a decorator and type hints.
-                                    Schemas are inferred automatically.</span
-                                >
-                            </li>
-                            <li>
-                                <span class="check">&#10003;</span>
-                                <span
-                                    ><strong>Session resume</strong> &mdash;
-                                    pick up any conversation where it left off.
-                                    Sessions are JSONL &mdash; portable and
-                                    inspectable.</span
-                                >
-                            </li>
-                            <li>
-                                <span class="check">&#10003;</span>
-                                <span
-                                    ><strong>MCP integration</strong> &mdash;
-                                    pass an
-                                    <code style="color: var(--accent)"
-                                        >mcp_config.json</code
-                                    >
-                                    and external tools appear as native.</span
-                                >
-                            </li>
-                            <li>
-                                <span class="check">&#10003;</span>
-                                <span
-                                    ><strong>Cancellation</strong> &mdash;
-                                    cooperative and hard cancellation built-in.
-                                    No zombie runs.</span
-                                >
-                            </li>
-                            <li>
-                                <span class="check">&#10003;</span>
-                                <span
-                                    ><strong>Extended thinking</strong> &mdash;
-                                    Anthropic thinking blocks and OpenAI o1/o3
-                                    reasoning, first-class.</span
-                                >
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
+<!-- ═══ Providers ═══════════════════════════════════════════ -->
+<section id="providers">
+  <div class="wrap">
+    <div class="sec-label reveal">providers</div>
+    <h2 class="sec-title reveal">bring your own model.</h2>
+    <p class="sec-desc reveal">
+      set an env var and go. switch mid-session with <code>/model</code>.
+      run fully local with ollama &mdash; no api key, no cloud.
+    </p>
+    <div class="pchips reveal">
+      <div class="pchip"><span class="d"></span> anthropic &mdash; claude 3.5, claude 4</div>
+      <div class="pchip"><span class="d"></span> openai &mdash; gpt-4o, o3, o4-mini</div>
+      <div class="pchip"><span class="d"></span> google &mdash; gemini pro &amp; flash</div>
+      <div class="pchip"><span class="d"></span> ollama &mdash; any local model</div>
+      <div class="pchip"><span class="d dim"></span> generic openai-compatible endpoint</div>
+    </div>
+  </div>
+</section>
 
-        <!-- ═══ Safety ════════════════════════════════════════ -->
-        <section class="safety-section" id="safety">
-            <div class="container">
-                <div class="section-label reveal">Safety</div>
-                <div class="section-title reveal">
-                    Guardrails, not guardhopes.
-                </div>
-                <div class="section-subtitle reveal" style="margin: 0 auto">
-                    Safety in Aar is declarative and default-on. Define what's
-                    allowed &mdash; everything else is denied.
-                </div>
-                <div class="safety-grid">
-                    <div class="safety-card reveal">
-                        <h4>
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="2"
-                            >
-                                <path
-                                    d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-                                />
-                            </svg>
-                            Path Restrictions
-                        </h4>
-                        <p>
-                            Glob-based deny-lists block access to
-                            <code>.env</code>, credentials, keys, and system
-                            files by default.
-                        </p>
-                    </div>
-                    <div class="safety-card reveal">
-                        <h4>
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="2"
-                            >
-                                <rect
-                                    x="3"
-                                    y="11"
-                                    width="18"
-                                    height="11"
-                                    rx="2"
-                                />
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                            </svg>
-                            Approval Gates
-                        </h4>
-                        <p>
-                            Require human approval for writes, shell commands,
-                            or any side-effecting operation before execution.
-                        </p>
-                    </div>
-                    <div class="safety-card reveal">
-                        <h4>
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="2"
-                            >
-                                <path
-                                    d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"
-                                />
-                            </svg>
-                            Command Deny-lists
-                        </h4>
-                        <p>
-                            Dangerous shell patterns (<code>rm -rf /</code>,
-                            <code>curl|sh</code>, fork bombs) are blocked before
-                            they reach the OS.
-                        </p>
-                    </div>
-                    <div class="safety-card reveal">
-                        <h4>
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#f59e0b"
-                                stroke-width="2"
-                            >
-                                <rect
-                                    x="2"
-                                    y="2"
-                                    width="20"
-                                    height="20"
-                                    rx="5"
-                                />
-                                <path d="M16 2v20M2 12h20" />
-                            </svg>
-                            Sandbox Modes
-                        </h4>
-                        <p>
-                            Run tools in local or subprocess sandboxes.
-                            Read-only mode blocks all side effects with a single
-                            flag.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
+<!-- ═══ Install ═════════════════════════════════════════════ -->
+<section id="install">
+  <div class="wrap">
+    <div class="sec-label reveal">install</div>
+    <h2 class="sec-title reveal">setup.</h2>
 
-        <!-- ═══ CTA ═══════════════════════════════════════════ -->
-        <section class="cta-section">
-            <div class="container">
-                <div class="cta-box reveal">
-                    <h2>Ready to build?</h2>
-                    <p>
-                        Aar is open source under Apache 2.0. Star it, fork it,
-                        break it, extend it.
-                    </p>
-                    <div class="hero-actions">
-                        <a
-                            href="https://github.com/fischerf/aar"
-                            class="btn btn-primary"
-                        >
-                            <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <path
-                                    d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
-                                />
-                            </svg>
-                            Star on GitHub
-                        </a>
-                        <a href="#hero" class="btn btn-secondary">
-                            Back to top
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <div class="step reveal">
+      <div class="step-num"><span>01</span> clone &amp; install</div>
+      <div class="term">
+        <div class="ln"><span class="ps">$</span><span class="tc">git clone https://github.com/fischerf/aar &amp;&amp; cd aar</span></div>
+        <div class="ln"><span class="ps">$</span><span class="tc">pip install -e ".[all]"</span></div>
+        <div class="out">installing aar-agent...</div>
+        <div class="ok">&#10003; done</div>
+      </div>
+      <div class="step-note"><code>-e</code> makes it a live install — edits to <code>agent/</code> are reflected immediately.</div>
+    </div>
 
-        <!-- ═══ Footer ═══════════════════════════════════════ -->
-        <footer>
-            <div class="container">
-                <p>
-                    <strong style="color: var(--accent)">aar</strong> &mdash;
-                    Adaptive Action &amp; Reasoning &middot;
-                    <a href="https://github.com/fischerf/aar">GitHub</a>
-                    &middot; Apache 2.0
-                </p>
-            </div>
-        </footer>
+    <div class="step reveal">
+      <div class="step-num"><span>02</span> provider key</div>
+      <div class="term">
+        <div class="ln"><span class="ps">$</span><span class="tc">export ANTHROPIC_API_KEY=sk-ant-...</span></div>
+        <div class="cmt">  # or OPENAI_API_KEY, GEMINI_API_KEY — or skip and use ollama locally</div>
+      </div>
+    </div>
 
-        <!-- ═══ Scripts ═══════════════════════════════════════ -->
-        <script>
-            // Nav scroll effect
-            const nav = document.getElementById("nav");
-            window.addEventListener("scroll", () => {
-                nav.classList.toggle("scrolled", window.scrollY > 20);
-            });
+    <div class="step reveal">
+      <div class="step-num"><span>03</span> run</div>
+      <div class="term">
+        <div class="ln"><span class="ps">$</span><span class="tc">aar tui --fixed</span></div>
+        <div class="ok">&#10003; ready</div>
+      </div>
+      <div class="step-note">
+        also: <code>aar chat</code> &nbsp;&middot;&nbsp; <code>aar tui</code> &nbsp;&middot;&nbsp;
+        <code>aar run "…"</code> &nbsp;&middot;&nbsp; <code>aar serve</code>
+      </div>
+    </div>
 
-            // Scroll reveal
-            const reveals = document.querySelectorAll(".reveal");
-            const observer = new IntersectionObserver(
-                (entries) => {
-                    entries.forEach((entry) => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add("visible");
-                        }
-                    });
-                },
-                { threshold: 0.1, rootMargin: "0px 0px -40px 0px" },
-            );
-            reveals.forEach((el) => observer.observe(el));
+    <div class="step reveal">
+      <div class="step-num"><span>04</span> zed integration (optional)</div>
+      <div class="code-block" style="max-width:500px">
+        <div class="code-head">
+          <div class="dr"></div><div class="dy"></div><div class="dg"></div>
+          <span class="fname">~/.config/zed/settings.json</span>
+        </div>
+        <div class="code-body">
+<pre><span style="color:var(--text-hi)">{</span>
+  <span class="st">"agent_servers"</span><span style="color:var(--text-hi)">: {</span>
+    <span class="st">"Aar"</span><span style="color:var(--text-hi)">: {</span>
+      <span class="st">"type"</span><span style="color:var(--text-hi)">:</span> <span class="st">"custom"</span><span style="color:var(--text-hi)">,</span>
+      <span class="st">"command"</span><span style="color:var(--text-hi)">:</span> <span class="st">"aar"</span><span style="color:var(--text-hi)">,</span>
+      <span class="st">"args"</span><span style="color:var(--text-hi)">: [</span><span class="st">"acp"</span><span style="color:var(--text-hi)">]</span>
+    <span style="color:var(--text-hi)">}</span>
+  <span style="color:var(--text-hi)">}</span>
+<span style="color:var(--text-hi)">}</span></pre>
+        </div>
+      </div>
+      <div class="step-note">
+        vscode: install <a href="https://marketplace.visualstudio.com/items?itemName=formulahendry.acp-client" target="_blank" rel="noopener">acp client</a>,
+        same config under <code>"acp.agents"</code>.
+        full guide: <a href="https://github.com/fischerf/aar/blob/main/docs/acp.md" target="_blank" rel="noopener">docs/acp.md</a>.
+      </div>
+    </div>
 
-            // Copy install command
-            function copyInstall(el) {
-                const text =
-                    'git clone https://github.com/fischerf/aar && cd aar && pip install -e ".[anthropic,mcp]"';
-                navigator.clipboard.writeText(text).then(() => {
-                    const hint = el.querySelector(".copy-hint");
-                    hint.textContent = "copied!";
-                    setTimeout(() => {
-                        hint.textContent = "copy";
-                    }, 2000);
-                });
-            }
-        </script>
-    </body>
+    <div class="step reveal">
+      <div class="step-num"><span>05</span> wsl sandbox — windows only (optional)</div>
+      <div class="term">
+        <div class="ln"><span class="ps">$</span><span class="tc">aar init</span><span class="cmt">           # creates ~/.aar/distros/ profiles</span></div>
+        <div class="ln"><span class="ps">$</span><span class="tc">aar sandbox setup</span><span class="cmt">  # downloads rootfs, installs packages</span></div>
+        <div class="ln"><span class="ps">$</span><span class="tc">aar sandbox status</span></div>
+      </div>
+      <div class="step-note">
+        routes all shell commands through a disposable alpine distro.
+        see <a href="https://github.com/fischerf/aar/blob/main/docs/safety.md" target="_blank" rel="noopener">docs/safety.md</a>.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Docs ════════════════════════════════════════════════ -->
+<section id="docs">
+  <div class="wrap">
+    <div class="sec-label reveal">docs</div>
+    <h2 class="sec-title reveal">documentation.</h2>
+    <p class="sec-desc reveal">all in <code>docs/</code> &mdash; plain markdown, no external hosting.</p>
+
+    <div class="docs-grid reveal">
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/architecture.md" target="_blank" rel="noopener">
+        <div class="dn">Architecture</div><div class="dd">component walkthrough, core loop, event flow</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/agent_loop.md" target="_blank" rel="noopener">
+        <div class="dn">Agent Loop</div><div class="dd">flow diagram, guardrails, state transitions</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/configuration.md" target="_blank" rel="noopener">
+        <div class="dn">Configuration</div><div class="dd">AgentConfig reference, approval modes, logging</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/acp.md" target="_blank" rel="noopener">
+        <div class="dn">ACP / IDE</div><div class="dd">Zed, VSCode setup, HTTP/SSE mode, endpoints</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/providers.md" target="_blank" rel="noopener">
+        <div class="dn">Providers</div><div class="dd">Anthropic, OpenAI, Ollama, Gemini setup</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/safety.md" target="_blank" rel="noopener">
+        <div class="dn">Safety</div><div class="dd">deny lists, path restrictions, sandbox modes</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/tools.md" target="_blank" rel="noopener">
+        <div class="dn">Tools</div><div class="dd">grep, find, read, write, edit, bash &mdash; reference</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/extensions.md" target="_blank" rel="noopener">
+        <div class="dn">Extensions</div><div class="dd">extension API, event hooks, publishing</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/themes.md" target="_blank" rel="noopener">
+        <div class="dn">Themes</div><div class="dd">built-in themes, custom themes, TUI layout</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/tokens.md" target="_blank" rel="noopener">
+        <div class="dn">Tokens &amp; Cost</div><div class="dd">tracking, budget enforcement, pricing</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/mcp.md" target="_blank" rel="noopener">
+        <div class="dn">MCP</div><div class="dd">MCP host integration, transports, reference</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/web-api.md" target="_blank" rel="noopener">
+        <div class="dn">Web API</div><div class="dd">HTTP endpoints, SSE streaming, ASGI embedding</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/development.md" target="_blank" rel="noopener">
+        <div class="dn">Development</div><div class="dd">programmatic use, custom tools, testing</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/prompting.md" target="_blank" rel="noopener">
+        <div class="dn">Prompting</div><div class="dd">system prompt design, provider tips</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/docs/sandbox_architecture.md" target="_blank" rel="noopener">
+        <div class="dn">Sandbox Architecture</div><div class="dd">WSL, Docker, Landlock, Job Object internals</div>
+      </a>
+      <a class="doc-link" href="https://github.com/fischerf/aar/blob/main/README.md" target="_blank" rel="noopener">
+        <div class="dn">README</div><div class="dd">full overview, quick start, all options</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Changelog ══════════════════════════════════════════ -->
+<section id="changelog">
+  <div class="wrap">
+    <div class="sec-label reveal">changelog</div>
+    <h2 class="sec-title reveal">releases.</h2>
+    <p class="sec-desc reveal">
+      full history at
+      <a href="https://github.com/fischerf/aar/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a>
+      and <a href="https://github.com/fischerf/aar/releases" target="_blank" rel="noopener">GitHub Releases</a>.
+    </p>
+
+    <div class="cl-item reveal">
+      <div class="cl-ver">v0.3.2 <span class="cl-tag">latest</span></div>
+      <div class="cl-date">2026-04-22</div>
+      <ul class="cl-list">
+        <li><strong>Gemini provider</strong> &mdash; Google Gemini Pro &amp; Flash via official SDK + HTTP backend</li>
+        <li><strong>ACP SDK transport</strong> &mdash; Zed stdio now uses the official <code>agent-client-protocol</code> SDK</li>
+        <li><strong>Full ACP session lifecycle</strong> &mdash; load, list, fork, resume, set-mode all implemented</li>
+        <li><strong>Docker sandbox</strong> &mdash; run agent tools inside an isolated container</li>
+        <li><strong>Linux Landlock sandbox</strong> &mdash; kernel-level process isolation (Linux &ge; 5.13)</li>
+        <li><strong>Windows Job Object sandbox</strong> &mdash; process isolation using Windows Job Objects</li>
+        <li><strong>File picker in TUI</strong> &mdash; <code>@</code> opens a modal file browser in the fixed TUI</li>
+        <li><strong>Budget proximity warning</strong> &mdash; warns before approaching token/cost limits</li>
+        <li><strong>Guardrails</strong> &mdash; configurable rules for autonomous loop safety</li>
+        <li><strong>VSCode integration</strong> &mdash; launch profiles and ACP config</li>
+        <li><strong>MCP server bridge in ACP</strong> &mdash; stdio and HTTP MCP servers registered per session</li>
+      </ul>
+    </div>
+
+    <div class="cl-item old reveal">
+      <div class="cl-ver">v0.3.1</div>
+      <div class="cl-date">2026-04-11 &mdash; initial public release</div>
+      <ul class="cl-list">
+        <li>Anthropic, OpenAI, Ollama, generic provider support</li>
+        <li>Rich TUI + Textual full-screen TUI with themes</li>
+        <li>Web API (ASGI / SSE)</li>
+        <li>WSL sandbox, JSONL session persistence, MCP bridge</li>
+        <li>token budget and cost tracking</li>
+      </ul>
+    </div>
+
+    <a href="https://github.com/fischerf/aar/blob/main/CHANGELOG.md" target="_blank" rel="noopener"
+       class="btn btn-ghost" style="font-size:12px;">
+      full changelog &rarr;
+    </a>
+  </div>
+</section>
+
+<!-- ═══ CTA ════════════════════════════════════════════════ -->
+<section>
+  <div class="wrap">
+    <div class="cta-box reveal">
+      <h2>that's it.</h2>
+      <p>apache 2.0. if it's useful to you, great. star it, fork it, send a pr.</p>
+      <div class="btn-row">
+        <a href="https://github.com/fischerf/aar" class="btn btn-primary" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.59 9.59 0 012.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          github.com/fischerf/aar
+        </a>
+        <a href="https://fischerf.github.io/" class="btn btn-ghost">my page</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Footer ════════════════════════════════════════════ -->
+<footer>
+  <div class="wrap">
+    <span>
+      <span class="f-brand">aar</span>
+      &mdash; built by <a href="https://github.com/fischerf" target="_blank" rel="noopener">fischerf</a>
+      &mdash; apache 2.0
+    </span>
+    <div class="f-links">
+      <a href="https://github.com/fischerf/aar" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/fischerf/aar/releases" target="_blank" rel="noopener">Releases</a>
+      <a href="https://github.com/fischerf/aar/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
+      <a href="https://github.com/fischerf/aar/issues" target="_blank" rel="noopener">Issues</a>
+      <a href="https://github.com/fischerf/aar/blob/main/docs/architecture.md" target="_blank" rel="noopener">Docs</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  /* ── tab switching ────────────────────────────────────── */
+  function switchTab(btn, id) {
+    const box = btn.closest('.install-box');
+    box.querySelectorAll('.itab').forEach(t => t.classList.remove('on'));
+    box.querySelectorAll('.ipanel').forEach(p => p.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('tab-' + id).classList.add('on');
+  }
+
+  /* ── copy command ─────────────────────────────────────── */
+  function copyCmd(el) {
+    const raw = el.querySelector('.ic').textContent.trim();
+    navigator.clipboard.writeText(raw).then(() => {
+      const btn = el.querySelector('.copy-btn');
+      btn.textContent = 'copied!';
+      setTimeout(() => { btn.textContent = 'copy'; }, 2000);
+    });
+  }
+
+  /* ── scroll reveal ────────────────────────────────────── */
+  const revealIo = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); revealIo.unobserve(e.target); } });
+  }, { threshold: 0.06, rootMargin: '0px 0px -28px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => revealIo.observe(el));
+
+
+</script>
+</body>
 </html>
+""</div>""</span>""""""
