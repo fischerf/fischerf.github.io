@@ -311,7 +311,7 @@
 ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝</pre>
 
     <div class="hero-badge reveal">
-      <span class="dot">●</span> adaptive action &amp; reasoning &nbsp;·&nbsp; v0.3.2 &nbsp;·&nbsp; apache 2.0
+      <span class="dot">●</span> adaptive action &amp; reasoning &nbsp;·&nbsp; v0.4.0 &nbsp;·&nbsp; apache 2.0
     </div>
 
     <h1 class="reveal">built a lightweight AI agent.</h1>
@@ -379,6 +379,14 @@
       <div class="diff-card">
         <h3>thin core</h3>
         <p>~80-line main loop. the entire execution path fits in your head. <code>agent/core/loop.py</code></p>
+      </div>
+      <div class="diff-card">
+        <h3>skills</h3>
+        <p>lazy-loaded instruction modules — drop a markdown file in <code>~/.aar/skills/</code> and the agent picks it up when relevant.</p>
+      </div>
+      <div class="diff-card">
+        <h3>context compaction</h3>
+        <p>llm-based summarization keeps long sessions inside the window. cut-point detection, token estimation, <code>compact</code> strategy.</p>
       </div>
       <div class="diff-card">
         <h3>any provider</h3>
@@ -634,7 +642,24 @@
     </p>
 
     <div class="cl-item reveal">
-      <div class="cl-ver">v0.3.2 <span class="cl-tag">latest</span></div>
+      <div class="cl-ver">v0.4.0 <span class="cl-tag">latest</span></div>
+      <div class="cl-date">2026-06-10</div>
+      <ul class="cl-list">
+        <li><strong>Skills</strong> &mdash; lazy-loaded instruction modules from <code>~/.aar/skills/</code> and <code>.agent/skills/</code> (markdown + YAML frontmatter)</li>
+        <li><strong>LLM context compaction</strong> &mdash; token estimation, cut-point detection, structured summarization via the <code>compact</code> strategy</li>
+        <li><strong>Multi-provider config</strong> &mdash; single config file with <code>/model</code> to list, show &amp; switch the active provider mid-session, plus capability-mismatch warnings</li>
+        <li><strong>New built-in tools</strong> &mdash; <code>grep</code> (regex content search) and <code>find_files</code> (glob path search)</li>
+        <li><strong>Tool-aware system prompt</strong> &mdash; tools contribute prompt snippets and guidelines to an "Available tools" layer; inspect with <code>aar prompt --layers</code></li>
+        <li><strong>Plugin extension system</strong> &mdash; <code>agent/extensions/</code> loader + manager, <code>aar install</code>, <code>aar extensions list / inspect</code>, pipeline event transforms</li>
+        <li><strong>ACP 0.10.0</strong> &mdash; <code>message_id</code>, additional directories, extension slash commands, per-session MCP server bridge</li>
+        <li><strong>TUI context bar</strong> &mdash; live token usage in the fixed header, queued prompts, kaomoji companion widget</li>
+        <li><strong>Token/cost persistence</strong> &mdash; running totals saved and restored across sessions; offline analysis via <code>scripts/analyze_tokens.py</code></li>
+        <li><code>/fork</code> renamed to <code>/branch</code> &middot; rate-limit resilience with jitter &middot; VSCode launch profiles &middot; large-file edit fixes</li>
+      </ul>
+    </div>
+
+    <div class="cl-item old reveal">
+      <div class="cl-ver">v0.3.2</div>
       <div class="cl-date">2026-04-22</div>
       <ul class="cl-list">
         <li><strong>Gemini provider</strong> &mdash; Google Gemini Pro &amp; Flash via official SDK + HTTP backend</li>
