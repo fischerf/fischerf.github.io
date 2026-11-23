@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="zh-Hans" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>aar desktop — Windows 上的友好 AI 助手</title>
+  <meta name="description" content="Aar Desktop：Windows 桌面上的一只小鹰，与 aar 智能体对话。它会操作你的程序、查找你的照片，动手之前先征求你的同意。通过 Ollama 在本地运行。"/>
+  <meta name="theme-color" content="#fbfaf8"/>
+  <link rel="canonical" href="https://fischerf.github.io/aar-desktop/zh/"/>
+  <link rel="alternate" hreflang="en" href="https://fischerf.github.io/aar-desktop/"/>
+  <link rel="alternate" hreflang="de" href="https://fischerf.github.io/aar-desktop/de/"/>
+  <link rel="alternate" hreflang="zh-Hans" href="https://fischerf.github.io/aar-desktop/zh/"/>
+  <link rel="alternate" hreflang="x-default" href="https://fischerf.github.io/aar-desktop/"/>
+  <script>
+    // 默认浅色；记住读者的选择
+    try { if (localStorage.getItem("aar-desktop-theme") === "dark") document.documentElement.setAttribute("data-theme", "dark"); } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="../site.css"/>
+</head>
+<body data-copy="复制" data-copied="已复制！">
+
+<!-- the mascot, reused (hero + nav) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="m-body" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0%" stop-color="#fcd34d"/><stop offset="55%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <linearGradient id="m-wing" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d97706"/><stop offset="100%" stop-color="#92400e"/>
+    </linearGradient>
+    <linearGradient id="m-beak" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fde047"/><stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+    <symbol id="eaglet" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="112" rx="26" ry="4.5" fill="#000" opacity="0.14"/>
+      <g class="m-figure">
+        <g fill="#f97316"><path d="M44 100 q4 9 8 0 z"/><path d="M68 100 q4 9 8 0 z"/></g>
+        <g class="m-wing-left"><path d="M30 58 C18 64 14 80 20 96 C26 90 30 84 34 80 Z" fill="url(#m-wing)"/></g>
+        <g class="m-wing-right"><path d="M90 58 C102 64 106 80 100 96 C94 90 90 84 86 80 Z" fill="url(#m-wing)"/></g>
+        <g fill="#d97706">
+          <path d="M54 30 C52 20 56 14 60 12 C60 20 60 26 60 30 Z"/>
+          <path d="M60 30 C62 18 70 14 74 16 C70 22 66 28 64 32 Z"/>
+          <path d="M56 31 C50 22 44 22 42 24 C47 27 50 30 52 34 Z"/>
+        </g>
+        <ellipse cx="60" cy="68" rx="34" ry="37" fill="url(#m-body)"/>
+        <ellipse cx="60" cy="84" rx="21" ry="18" fill="#fef3c7"/>
+        <path d="M52 82 q2 2 4 0 M62 86 q2 2 4 0 M56 92 q2 2 4 0" stroke="#f59e0b" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.7"/>
+        <ellipse cx="37" cy="73" rx="5" ry="3" fill="#fb7185" opacity="0.45"/>
+        <ellipse cx="83" cy="73" rx="5" ry="3" fill="#fb7185" opacity="0.45"/>
+        <g class="m-eyes-open">
+          <circle cx="47" cy="60" r="10.5" fill="#fff"/><circle cx="73" cy="60" r="10.5" fill="#fff"/>
+          <circle cx="48" cy="61" r="6" fill="#1c1917"/><circle cx="72" cy="61" r="6" fill="#1c1917"/>
+          <circle cx="50.5" cy="58.5" r="2.2" fill="#fff"/><circle cx="74.5" cy="58.5" r="2.2" fill="#fff"/>
+        </g>
+        <path d="M54 74 Q60 84 66 74 Z" fill="#c2410c"/>
+        <path d="M50 69 Q60 62 70 69 Q68 77 61 82 Q60 78 56 76 Q52 73 50 69 Z" fill="url(#m-beak)"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ═══ Nav ═══════════════════════════════════════════════ -->
+<nav>
+  <div class="wrap">
+    <span class="nav-brand"><svg><use href="#eaglet"/></svg>aar desktop</span>
+    <div class="nav-links">
+      <a href="#demo">演示</a>
+      <a href="#features">功能</a>
+      <a href="#tour">导览</a>
+      <a href="#install">安装</a>
+      <a href="#faq">常见问题</a>
+    </div>
+    <div class="nav-right">
+      <a class="nav-btn nav-aar" href="/aar/">aar 智能体</a>
+      <div class="nav-lang" role="navigation" aria-label="语言">
+        <a href="/aar-desktop/" hreflang="en" lang="en" data-lang="en">en</a><a href="/aar-desktop/de/" hreflang="de" lang="de" data-lang="de">de</a><a href="/aar-desktop/zh/" hreflang="zh-Hans" lang="zh-Hans" data-lang="zh" aria-current="page">中文</a>
+      </div>
+      <button class="nav-btn" id="theme" type="button" aria-label="切换浅色 / 深色" data-dark="☾ 深色" data-light="☀ 浅色"><span class="nav-ico">☾</span><span class="nav-label">深色</span></button>
+      <a href="https://github.com/fischerf/aar" class="nav-btn" target="_blank" rel="noopener">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.59 9.59 0 012.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        <span class="nav-label">GitHub</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ Hero ═══════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="hero-badge reveal">
+        <span class="dot">●</span> windows 11 &nbsp;·&nbsp; v0.1.0 &nbsp;·&nbsp; 本地运行 &nbsp;·&nbsp; 基于 <a href="/aar/">aar</a>
+      </div>
+      <h1 class="reveal">桌面上的一只小鹰，<br/><em>真的能帮你把事情办好。</em></h1>
+      <p class="hero-sub reveal">
+        Aar Desktop 把 <a href="/aar/">aar 智能体</a>变成屏幕角落里一个友好的吉祥物。用日常语言提问就行——它会打开程序、替你点击和输入、阅读你的文档、按内容查找照片，并且<strong>在做任何更改之前先征求你的同意</strong>。专为从不打开终端的人设计。语言模型就在你自己的电脑上运行。
+      </p>
+      <div class="install-box reveal">
+        <div class="install-tabs">
+          <button class="itab on" onclick="switchTab(this,'setup')">安装程序</button>
+          <button class="itab" onclick="switchTab(this,'silent')">静默安装 / IT</button>
+          <button class="itab" onclick="switchTab(this,'own')">已有 aar</button>
+        </div>
+        <div class="ipanel on" id="tab-setup">
+          <div class="icomment"># 按用户安装，无需管理员权限 —— 自带 aar 和 Python</div>
+          <div class="iline" onclick="copyCmd(this)" title="点击复制">
+            <span class="ps">&gt;</span><span class="ic">Aar_0.1.0_x64-setup.exe</span><button class="copy-btn">复制</button>
+          </div>
+        </div>
+        <div class="ipanel" id="tab-silent">
+          <div class="icomment"># 无人值守：安装后配置 Ollama 和模型</div>
+          <div class="iline" onclick="copyCmd(this)" title="点击复制">
+            <span class="ps">&gt;</span><span class="ic">Aar_0.1.0_x64-setup.exe /S &amp;&amp; aar-desktop.exe --setup setup.log qwen3.5:4b</span><button class="copy-btn">复制</button>
+          </div>
+        </div>
+        <div class="ipanel" id="tab-own">
+          <div class="icomment"># 已经装了 aar？在应用中指定它：设置 → 高级 → 代理程序</div>
+          <div class="iline" onclick="copyCmd(this)" title="点击复制">
+            <span class="ps">$</span><span class="ic">git clone https://github.com/fischerf/aar &amp;&amp; pip install -e "./aar[acp,mcp,windows]"</span><button class="copy-btn">复制</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-mascot reveal" aria-hidden="true">
+      <div class="halo"></div>
+      <div class="bubble">你好！需要我帮什么忙？</div>
+      <svg viewBox="0 0 120 120"><use href="#eaglet"/></svg>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Demo ════════════════════════════════════════════════ -->
+<section id="demo">
+  <div class="wrap">
+    <div class="sec-label reveal">实际效果</div>
+    <h2 class="sec-title reveal">“打开画图，画一幅海上日落。”</h2>
+    <p class="sec-desc reveal">
+        一句话就够了。aar 先征得你的同意再启动画图，读取窗口，选好画笔开始作画——每一步都用通俗的话展示，而不是工具术语。
+      </p>
+    <div class="demo reveal">
+      <div class="screen">
+        <div class="screen-head"><div class="dr"></div><div class="dy"></div><div class="dg"></div><span class="t">aar-desktop.gif</span></div>
+        <img src="../img/zh/aar-desktop.gif" alt="Aar Desktop 征得同意后打开画图并画出日落" width="800" height="600"/>
+      </div>
+      <div class="demo-steps">
+        <span><b>01</b> 点击小鹰</span><span><b>02</b> 直接提问</span><span><b>03</b> 允许</span><span><b>04</b> 完成</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Features ════════════════════════════════════════════ -->
+<section id="features">
+  <div class="wrap">
+    <div class="sec-label reveal">功能</div>
+    <h2 class="sec-title reveal">连你爸妈都会用的智能体。</h2>
+    <p class="sec-desc reveal">
+        aar 的全部能力——工具、MCP、扩展、任意模型——都藏在一个聊天气泡后面，没有让人望而生畏的设置。
+      </p>
+    <div class="diff-grid reveal">
+      <div class="diff-card"><div class="ico">🖱️</div><h3>操作你的程序</h3><p>读取窗口、启动应用，通过 UI 自动化点击和输入。Edge、画图、资源管理器、Office——电脑上有什么就能用什么。</p></div>
+      <div class="diff-card"><div class="ico">✋</div><h3>先问再做</h3><p>每次更改前都会弹出许可卡片：允许、拒绝、始终允许。也可以把当前对话设为只读。</p></div>
+      <div class="diff-card"><div class="ico">🏠</div><h3>默认本地运行</h3><p>设置向导检查内存和显卡（真实显存），静默安装 Ollama，并下载合适的模型。</p></div>
+      <div class="diff-card"><div class="ico">🖼️</div><h3>帮你找照片</h3><p>“所有有桌子的照片”——视觉模型为每张照片生成一次描述，存入本地索引。缩略图直接显示在聊天中。</p></div>
+      <div class="diff-card"><div class="ico">👁️</div><h3>看得懂图片</h3><p>拖入、粘贴或用 📎 附上一张图片，然后提问。应用会先把图片缩小，再发送给任意视觉模型。</p></div>
+      <div class="diff-card"><div class="ico">🧩</div><h3>扩展，坦诚透明</h3><p>从注册表安装 aar 扩展。每个扩展都会说明它改变了什么——既有人工整理的说明，也有它实际挂接的内容。</p></div>
+      <div class="diff-card"><div class="ico">🔌</div><h3>工具服务器（MCP）</h3><p>一键目录：读取网页，读取 PDF/Word/Excel，Playwright，Chrome DevTools，记忆——或者你自己的命令 / URL。</p></div>
+      <div class="diff-card"><div class="ico">📄</div><h3>新文件触手可及</h3><p>aar 创建的文件会显示在回答下方，并带有<em>打开</em>和<em>在文件夹中显示</em>。</p></div>
+      <div class="diff-card"><div class="ico">🌍</div><h3>三种语言</h3><p>Deutsch、English、简体中文——跟随 Windows 设置，托盘菜单和提示信息也一样。</p></div>
+      <div class="diff-card"><div class="ico">🦅</div><h3>有表情的吉祥物</h3><p>十种状态：倾听、思考、工作、提问、开心……一眼就能看出 aar 正在做什么。</p></div>
+      <div class="diff-card"><div class="ico">⌨️</div><h3>随时待命</h3><p>托盘图标、全局快捷键 <code>Ctrl+Alt+A</code>、随 Windows 启动，还会记住你把它放在了哪里。</p></div>
+      <div class="diff-card"><div class="ico">🔍</div><h3>不是黑箱</h3><p>工具详情一键可见，对话记录和日志在“故障排查”中，版本信息可一键复制。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Tour ════════════════════════════════════════════════ -->
+<section id="tour">
+  <div class="wrap">
+    <div class="sec-label reveal">导览</div>
+    <h2 class="sec-title reveal">仔细看看。</h2>
+    <p class="sec-desc reveal">
+        真实的应用，真实的界面——点击任意截图即可放大（1600&times;1200）。
+      </p>
+
+    <div class="tour">
+      <div class="tour-row reveal">
+        <div class="screen"><img src="../img/zh/paint.webp" alt="Aar 在画图中画了一幅日落" loading="lazy" width="1600" height="1200"/></div>
+        <div class="tour-text">
+          <h3><span class="n">01</span>操作你已有的程序</h3>
+          <span class="quote">“打开画图，画一幅海上日落”</span>
+          <p>自带的 Windows 桌面服务器让 aar 像屏幕阅读器一样看到窗口和控件——然后点击、输入和拖动。</p>
+          <ul><li>使用窗口和按钮的名称，而不是句柄</li><li>需要时截图查看</li><li>勾选一下即可关闭</li></ul>
+        </div>
+      </div>
+
+      <div class="tour-row flip reveal">
+        <div class="screen"><img src="../img/zh/permission.webp" alt="写入文件前的许可卡片" loading="lazy" width="1600" height="1200"/></div>
+        <div class="tour-text">
+          <h3><span class="n">02</span>没有你的同意，什么都不会改变</h3>
+          <span class="quote">“总结这份报告，并保存为 Word 文件”</span>
+          <p>读取没问题，写入要先问。卡片用通俗的话说明要做什么、在哪里做——想了解更多可以查看详情。</p>
+          <ul><li>允许 · 拒绝 · 始终允许</li><li>“先询问”、“无需询问直接工作”或“只读”</li><li>小鹰会举起一个问号</li></ul>
+        </div>
+      </div>
+
+      <div class="tour-row reveal">
+        <div class="screen"><img src="../img/zh/photo-search.webp" alt="照片搜索以缩略图显示有桌子的照片" loading="lazy" width="1600" height="1200"/></div>
+        <div class="tour-text">
+          <h3><span class="n">03</span>按内容查找照片</h3>
+          <span class="quote">“给我看所有有桌子的照片”</span>
+          <p>在设置中选择文件夹；本地视觉模型为每张照片生成一次描述（使用显卡约 2&ndash;5 秒）。之后的搜索立即出结果。</p>
+          <ul><li>物体、人数、室内/室外、可见文字、年份</li><li>也支持手机拍摄的 HEIC</li><li>索引保存在本机，随时可以删除</li></ul>
+        </div>
+      </div>
+
+      <div class="tour-row flip reveal">
+        <div class="screen"><img src="../img/zh/vision.webp" alt="附加的海滩照片和配文建议" loading="lazy" width="1600" height="1200"/></div>
+        <div class="tour-text">
+          <h3><span class="n">04</span>给它看一张图片</h3>
+          <span class="quote">“这可能是哪里？写一句配文”</span>
+          <p>📎、拖放或粘贴都可以。应用会先把图片缩小到 1280&nbsp;像素，所以一张照片只需约 1000 个 token，而不是 10&nbsp;000 个。</p>
+        </div>
+      </div>
+
+      <div class="tour-row reveal">
+        <div class="screen"><img src="../img/zh/extensions.webp" alt="带警告提示的扩展" loading="lazy" width="1600" height="1200"/></div>
+        <div class="tour-text">
+          <h3><span class="n">05</span>附带坦诚警告的扩展</h3>
+          <p>直接来自 <a href="https://github.com/fischerf/aar-extensions-registry" target="_blank" rel="noopener">aar 扩展注册表</a>。安装前：说明它的用途。安装后：显示它实际注册了什么——挂接到操作或消息、额外的指令、有副作用的工具。</p>
+          <ul><li>有风险的扩展需要再点一次确认</li><li>无需卸载即可停用</li><li>安装到你实际使用的 aar 中</li></ul>
+        </div>
+      </div>
+
+      <div class="tour-row flip reveal">
+        <div class="screen"><img src="../img/zh/tools.webp" alt="Chrome DevTools MCP 服务器的设置对话框" loading="lazy" width="1600" height="1200"/></div>
+        <div class="tour-text">
+          <h3><span class="n">06</span>接入工具服务器</h3>
+          <p>一个带设置对话框的小目录——例如 Chrome DevTools，可以选择浏览器、工具范围、后台运行，并预设 <code>--no-usage-statistics</code>。首次使用时会自动获取 Node.js。</p>
+          <ul><li>Python：网页、文档、时间</li><li>Node：Playwright（Edge）、Chrome DevTools、记忆</li><li>自定义：程序 + 参数 + 环境变量，或 URL + 请求头</li></ul>
+        </div>
+      </div>
+
+      <div class="tour-row reveal">
+        <div class="screen"><img src="../img/zh/setup.webp" alt="设置向导推荐模型" loading="lazy" width="1600" height="1200"/></div>
+        <div class="tour-text">
+          <h3><span class="n">07</span>一键完成设置</h3>
+          <p>在新电脑上，向导会自动打开：检查内存和真实显存，推荐模型，静默安装 Ollama，并在下载模型时显示进度。</p>
+        </div>
+      </div>
+
+      <div class="tour-row flip reveal">
+        <div class="screen"><img src="../img/de/photo-search.webp" alt="德语界面的 Aar Desktop" loading="lazy" width="1600" height="1200"/></div>
+        <div class="tour-text">
+          <h3><span class="n">08</span>说你的语言</h3>
+          <p>德语、英语和简体中文——自动跟随 Windows，也可以在设置中选择。托盘菜单和错误信息同样会翻译。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ How ═════════════════════════════════════════════════ -->
+<section id="how">
+  <div class="wrap">
+    <div class="sec-label reveal">工作原理</div>
+    <h2 class="sec-title reveal">aar 外面薄薄的一层壳。</h2>
+    <p class="sec-desc reveal">
+        Tauri 2（Rust + WebView2）、不依赖框架的 TypeScript 界面，以及通过 stdio 使用 Agent Client Protocol 通信的 aar。安装程序自带装好 aar 的 Python——无需任何配置。
+      </p>
+<pre class="arch reveal"><span class="a">aar-desktop.exe</span>  <span class="c">(tauri)</span>                              <span class="a">aar</span>  <span class="c">(bundled python 3.13)</span>
+ ├─ ui  <span class="c">(webview2, ts)</span>    ── invoke/events ──┐    python -m agent.transports.cli acp
+ └─ rust <span class="c">(window, tray)</span>  ── stdio json-rpc ──┴──► <span class="a">acp v1</span> ──► mcp: windows desktop · photos · your servers
+                                                          └──► ollama <span class="c">(local)</span> · or any aar provider</pre>
+  </div>
+</section>
+
+<!-- ═══ Install ═════════════════════════════════════════════ -->
+<section id="install">
+  <div class="wrap">
+    <div class="sec-label reveal">安装</div>
+    <h2 class="sec-title reveal">三步搞定。</h2>
+
+    <div class="step reveal">
+      <div class="step-num"><span>01</span> 运行安装程序</div>
+      <div class="term">
+        <div class="ln"><span class="ps">&gt;</span><span class="tc">Aar_0.1.0_x64-setup.exe</span></div>
+        <div class="ok">✓ 已安装到 %LOCALAPPDATA%\Aar —— 无需管理员权限</div>
+      </div>
+      <div class="step-note">按用户安装。自带 aar、Python 和 Windows 桌面服务器。<code>/S</code> 表示静默安装。</div>
+    </div>
+
+    <div class="step reveal">
+      <div class="step-num"><span>02</span> 让向导挑选模型</div>
+      <div class="term">
+        <div class="cmt">  # 首次启动时，小鹰会出现在右下角并提供设置向导</div>
+        <div class="ok">✓ 已安装 Ollama · 已下载 qwen3.8 · 就绪</div>
+      </div>
+      <div class="step-note">已经有 <code>~/.aar/config.json</code>？其中的配置会显示在 设置 → 语言模型连接 中。</div>
+    </div>
+
+    <div class="step reveal">
+      <div class="step-num"><span>03</span> 点击小鹰，开始提问</div>
+      <div class="term">
+        <div class="ln"><span class="ps">🦅</span><span class="tc">我日历 PDF 里下周有什么安排？</span></div>
+      </div>
+      <div class="step-note">或者在任何地方按 <code>Ctrl+Alt+A</code>。</div>
+    </div>
+
+    <div class="tbl-wrap reveal" style="margin-top:28px">
+      <table class="req">
+        <thead><tr><th>你的电脑</th><th>向导推荐的模型</th><th>使用感受</th></tr></thead>
+        <tbody>
+          <tr><td>显存 ≥ 20 GB 的显卡</td><td><code>qwen3.8</code>（27B，支持图片）</td><td>能可靠地操作程序，每张照片约 5 秒</td></tr>
+          <tr><td>中端电脑 / 没有大显卡</td><td><code>gemma4:e4b</code></td><td>适合问答和处理文档</td></tr>
+          <tr><td>小型办公电脑</td><td><code>qwen3.5:4b</code>（支持图片）</td><td>速度快，每张照片约 2 秒，适合较简单的任务</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FAQ ═════════════════════════════════════════════════ -->
+<section id="faq">
+  <div class="wrap faq">
+    <div class="sec-label reveal">常见问题</div>
+    <h2 class="sec-title reveal">好问题。</h2>
+    <details class="reveal"><summary>我的数据会离开电脑吗？</summary>
+      <p>默认设置下不会：模型在你电脑上的 Ollama 中运行，对话和照片索引都保存在本地。如果你让 aar 使用云服务商，该服务商会看到你发送的内容。</p></details>
+    <details class="reveal"><summary>它会把东西弄坏吗？</summary>
+      <p>每一次更改——写文件、运行命令、在程序中点击——都需要你先同意，除非你选择“无需询问直接工作”。“只读”会完全阻止更改。</p></details>
+    <details class="reveal"><summary>我已经在终端 / VS Code 里用 aar 了。</summary>
+      <p>很好——在 设置 → 高级 → 代理程序 中填入你的 <code>aar</code>。之后扩展和工具服务器会安装到那个 Python 中，会话和配置也是共享的。</p></details>
+    <details class="reveal"><summary>它能识别照片上的人吗？</summary>
+      <p>不能。照片搜索会描述照片上有什么（物体、人数、地点、文字），但不做人脸识别。</p></details>
+    <details class="reveal"><summary>需要哪个版本的 Windows？</summary>
+      <p>Windows 11（已内置 WebView2）。小模型有 8 GB 内存就够了；有显卡会更快。</p></details>
+  </div>
+</section>
+
+<!-- ═══ CTA ════════════════════════════════════════════════ -->
+<section>
+  <div class="wrap">
+    <div class="cta-box reveal">
+      <h2>跟小鹰打个招呼吧。</h2>
+      <p>Aar Desktop 基于 aar 构建——开源，Apache 2.0 许可。</p>
+      <div class="btn-row">
+        <a href="https://github.com/fischerf/aar/releases" class="btn btn-primary" target="_blank" rel="noopener">下载</a>
+        <a href="/aar/" class="btn btn-ghost">了解 aar</a>
+        <a href="https://discord.gg/xYJNHJV7Bh" class="btn btn-ghost" target="_blank" rel="noopener">Discord</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Footer ════════════════════════════════════════════ -->
+<footer>
+  <div class="wrap">
+    <span><span class="f-brand">aar desktop</span> &mdash; 由 <a href="https://github.com/fischerf" target="_blank" rel="noopener">fischerf</a> 开发 &mdash; 基于 <a href="/aar/">aar</a></span>
+    <div class="f-links">
+      <a href="/aar/">aar</a>
+      <a href="https://github.com/fischerf/aar" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/fischerf/aar-extensions-registry" target="_blank" rel="noopener">扩展</a>
+      <a href="https://discord.gg/xYJNHJV7Bh" target="_blank" rel="noopener">Discord</a>
+    </div>
+    <div class="credits">
+      截图中的示例照片：CC0，来自 Unsplash，经由 Wikimedia Commons。截图展示的是真实界面，回答来自脚本化的演示智能体。
+    </div>
+  </div>
+</footer>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-label="截图"><img alt=""/></div>
+
+<script src="../site.js"></script>
+</body>
+</html>
