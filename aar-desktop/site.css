@@ -286,6 +286,8 @@ h2.sec-title {
 .hero-dl { justify-content:flex-start; margin-top:16px; }
 .cta-box p.cta-warn { color:#dc2626; font-size:12px; margin-top:-8px; }
 [data-theme="dark"] .cta-box p.cta-warn { color:#f87171; }
+.disclaimer { margin-top:18px; font-size:11.5px; line-height:1.65; color:var(--text); text-align:left; }
+.disclaimer b { color:var(--text-hi); }
 footer { border-top:1px solid var(--border); padding:20px 0 28px; font-size:11.5px; color:var(--text-dim); }
 footer .wrap { display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
 .f-brand { color:var(--text-hi); font-weight:600; }
