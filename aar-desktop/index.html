@@ -88,7 +88,7 @@
         <a href="/aar-desktop/" hreflang="en" lang="en" data-lang="en" aria-current="page">en</a><a href="/aar-desktop/de/" hreflang="de" lang="de" data-lang="de">de</a><a href="/aar-desktop/zh/" hreflang="zh-Hans" lang="zh-Hans" data-lang="zh">中文</a>
       </div>
       <button class="nav-btn" id="theme" type="button" aria-label="switch light / dark" data-dark="☾ dark" data-light="☀ light"><span class="nav-ico">☾</span><span class="nav-label">dark</span></button>
-      <a href="https://github.com/fischerf/aar" class="nav-btn" target="_blank" rel="noopener">
+      <a href="https://github.com/fischerf/aar-desktop" class="nav-btn" target="_blank" rel="noopener">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.59 9.59 0 012.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
         <span class="nav-label">GitHub</span>
       </a>
@@ -101,7 +101,7 @@
   <div class="wrap hero-grid">
     <div>
       <div class="hero-badge reveal">
-        <span class="dot">●</span> windows 11 &nbsp;·&nbsp; v0.1.0 &nbsp;·&nbsp; runs locally &nbsp;·&nbsp; built on <a href="/aar/">aar</a>
+        <span class="dot">●</span> windows 11 &nbsp;·&nbsp; v0.1.0 preview &nbsp;·&nbsp; runs locally &nbsp;·&nbsp; built on <a href="/aar/">aar</a>
       </div>
       <h1 class="reveal">a little eagle on your desktop<br/>that <em>actually gets things done.</em></h1>
       <p class="hero-sub reveal">
@@ -110,6 +110,7 @@
         finds photos by what's on them, and <strong>asks before it changes anything</strong>.
         made for people who'd never open a terminal. the language model runs on your pc.
       </p>
+      <div class="preview-note reveal"><b>⚠ early preview.</b> this is the first version and it will have bugs. an agent that clicks, types and writes files can make mistakes that are hard to undo &mdash; try it only in a <strong>virtual machine or test setup without productive or personal data</strong>.</div>
       <div class="install-box reveal">
         <div class="install-tabs">
           <button class="itab on" onclick="switchTab(this,'setup')">installer</button>
@@ -134,6 +135,10 @@
             <span class="ps">$</span><span class="ic">git clone https://github.com/fischerf/aar &amp;&amp; pip install -e "./aar[acp,mcp,windows]"</span><button class="copy-btn">copy</button>
           </div>
         </div>
+      </div>
+      <div class="btn-row hero-dl reveal">
+        <a href="https://github.com/fischerf/aar-desktop/releases/download/v0.1.0/Aar_0.1.0_x64-setup.exe" class="btn btn-primary">download v0.1.0</a>
+        <a href="https://github.com/fischerf/aar-desktop/releases/tag/v0.1.0" class="btn btn-ghost" target="_blank" rel="noopener">release notes</a>
       </div>
     </div>
     <div class="hero-mascot reveal" aria-hidden="true">
@@ -302,7 +307,7 @@
         <div class="ln"><span class="ps">&gt;</span><span class="tc">Aar_0.1.0_x64-setup.exe</span></div>
         <div class="ok">✓ installed to %LOCALAPPDATA%\Aar &mdash; no admin rights</div>
       </div>
-      <div class="step-note">per user. brings aar, python and the windows desktop server. <code>/S</code> installs silently.</div>
+      <div class="step-note">per user. brings aar, python and the windows desktop server. <code>/S</code> installs silently. for now: install it in a vm, not on your everyday pc.</div>
     </div>
 
     <div class="step reveal">
@@ -343,7 +348,7 @@
     <details class="reveal"><summary>does my data leave the pc?</summary>
       <p>not with the default setup: the model runs in ollama on your machine, conversations and the photo index are stored locally. if you point aar at a cloud provider, that provider sees what you send.</p></details>
     <details class="reveal"><summary>can it break something?</summary>
-      <p>every change &mdash; writing files, running commands, clicking in programs &mdash; needs your ok first, unless you choose "work without asking". "read only" blocks changes completely.</p></details>
+      <p>every change &mdash; writing files, running commands, clicking in programs &mdash; needs your ok first, unless you choose "work without asking". "read only" blocks changes completely. still, this is an early preview with bugs &mdash; for now use it only in a vm without productive data.</p></details>
     <details class="reveal"><summary>i already use aar in the terminal / vs code.</summary>
       <p>great &mdash; set settings → advanced → agent program to your <code>aar</code>. extensions and tool servers are then installed for that python, sessions and config are shared.</p></details>
     <details class="reveal"><summary>does it recognise people on photos?</summary>
@@ -359,8 +364,9 @@
     <div class="cta-box reveal">
       <h2>say hi to the eagle.</h2>
       <p>aar desktop is built on aar &mdash; open source, apache 2.0.</p>
+      <p class="cta-warn">early preview &mdash; please test it in a virtual machine only.</p>
       <div class="btn-row">
-        <a href="https://github.com/fischerf/aar/releases" class="btn btn-primary" target="_blank" rel="noopener">download</a>
+        <a href="https://github.com/fischerf/aar-desktop/releases/download/v0.1.0/Aar_0.1.0_x64-setup.exe" class="btn btn-primary">download</a>
         <a href="/aar/" class="btn btn-ghost">about aar</a>
         <a href="https://discord.gg/xYJNHJV7Bh" class="btn btn-ghost" target="_blank" rel="noopener">Discord</a>
       </div>
@@ -374,7 +380,7 @@
     <span><span class="f-brand">aar desktop</span> &mdash; built by <a href="https://github.com/fischerf" target="_blank" rel="noopener">fischerf</a> &mdash; on top of <a href="/aar/">aar</a></span>
     <div class="f-links">
       <a href="/aar/">aar</a>
-      <a href="https://github.com/fischerf/aar" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/fischerf/aar-desktop" target="_blank" rel="noopener">GitHub</a>
       <a href="https://github.com/fischerf/aar-extensions-registry" target="_blank" rel="noopener">Extensions</a>
       <a href="https://discord.gg/xYJNHJV7Bh" target="_blank" rel="noopener">Discord</a>
     </div>
