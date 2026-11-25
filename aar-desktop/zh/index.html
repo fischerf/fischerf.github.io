@@ -95,7 +95,7 @@
       <p class="hero-sub reveal">
         Aar Desktop 把 <a href="/aar/">aar 智能体</a>变成屏幕角落里一个友好的吉祥物。用日常语言提问就行——它会打开程序、替你点击和输入、阅读你的文档、按内容查找照片，并且<strong>在做任何更改之前先征求你的同意</strong>。专为从不打开终端的人设计。语言模型就在你自己的电脑上运行。
       </p>
-      <div class="preview-note reveal"><b>⚠ 早期预览版。</b>这是第一个版本，其中难免存在错误。会点击、输入并写入文件的智能体可能犯下难以撤销的错误——请仅在<strong>没有生产数据或个人数据的虚拟机或测试环境</strong>中试用。</div>
+      <div class="preview-note reveal"><b>⚠ 早期预览版。</b>这是一个早期版本，其中难免存在错误。会点击、输入并写入文件的智能体可能犯下难以撤销的错误——建议先在<strong>虚拟机或 Windows 沙盒</strong>中试用。</div>
       <div class="install-box reveal">
         <div class="install-tabs">
           <button class="itab on" onclick="switchTab(this,'setup')">安装程序</button>
@@ -292,7 +292,7 @@
         <div class="ln"><span class="ps">&gt;</span><span class="tc">Aar_0.1.3_x64-setup.exe</span></div>
         <div class="ok">✓ 已安装到 %LOCALAPPDATA%\Aar —— 无需管理员权限</div>
       </div>
-      <div class="step-note">按用户安装。自带 aar、Python 和 Windows 桌面服务器。<code>/S</code> 表示静默安装。目前请安装在虚拟机中，不要装在日常使用的电脑上。</div>
+      <div class="step-note">按用户安装。自带 aar、Python 和 Windows 桌面服务器。<code>/S</code> 表示静默安装。建议先在虚拟机或 Windows 沙盒中试用。</div>
     </div>
 
     <div class="step reveal">
@@ -334,7 +334,7 @@
     <details class="reveal"><summary>我的数据会离开电脑吗？</summary>
       <p>默认设置下不会：模型在你电脑上的 Ollama 中运行，对话和照片索引都保存在本地，便于符合 GDPR（欧盟《通用数据保护条例》）的使用。Aar Desktop 不收集使用数据，也不检查更新；它只会在设置时自行联网下载 Ollama 和模型，以及加载扩展列表。如果你让 aar 使用云服务商，该服务商会看到你发送的内容。在欧盟开发，开源——每一行代码都可以查看。</p></details>
     <details class="reveal"><summary>它会把东西弄坏吗？</summary>
-      <p>每一次更改——写文件、运行命令、在程序中点击——都需要你先同意，除非你选择“无需询问直接工作”。“只读”会完全阻止更改。不过这是早期预览版，难免有错误——目前请只在没有生产数据的虚拟机中使用。</p></details>
+      <p>每一次更改——写文件、运行命令、在程序中点击——都需要你先同意，除非你选择“无需询问直接工作”。“只读”会完全阻止更改。不过这是早期预览版，难免有错误——建议先在虚拟机或 Windows 沙盒中试用。</p></details>
     <details class="reveal"><summary>出了问题由谁负责？</summary>
       <p>使用风险由你自行承担。Aar Desktop 是免费的开源软件，依据 <a href="https://github.com/fischerf/aar-desktop/blob/main/LICENSE" target="_blank" rel="noopener">Apache 2.0 许可证</a>“按原样”提供，不附带任何担保。请仔细检查每一个权限请求，做好备份，不要让它接触生产数据。</p></details>
     <details class="reveal"><summary>我已经在终端 / VS Code 里用 aar 了。</summary>
@@ -352,7 +352,7 @@
     <div class="cta-box reveal">
       <h2>跟小鹰打个招呼吧。</h2>
       <p>Aar Desktop 基于 aar 构建——开源，Apache 2.0 许可。</p>
-      <p class="cta-warn">早期预览版——请只在虚拟机中测试。</p>
+      <p class="cta-warn">早期预览版——建议先在虚拟机或 Windows 沙盒中试用。</p>
       <div class="btn-row">
         <a href="https://github.com/fischerf/aar-desktop/releases/download/v0.1.3/Aar_0.1.3_x64-setup.exe" class="btn btn-primary">下载</a>
         <a href="/aar/" class="btn btn-ghost">了解 aar</a>

@@ -110,7 +110,7 @@
         finds photos by what's on them, and <strong>asks before it changes anything</strong>.
         made for people who'd never open a terminal. the language model runs on your pc.
       </p>
-      <div class="preview-note reveal"><b>⚠ early preview.</b> this is the first version and it will have bugs. an agent that clicks, types and writes files can make mistakes that are hard to undo &mdash; try it only in a <strong>virtual machine or test setup without productive or personal data</strong>.</div>
+      <div class="preview-note reveal"><b>⚠ early preview.</b> this is an early version and it will have bugs. an agent that clicks, types and writes files can make mistakes that are hard to undo &mdash; try it first in a <strong>virtual machine or the Windows Sandbox</strong>.</div>
       <div class="install-box reveal">
         <div class="install-tabs">
           <button class="itab on" onclick="switchTab(this,'setup')">installer</button>
@@ -307,7 +307,7 @@
         <div class="ln"><span class="ps">&gt;</span><span class="tc">Aar_0.1.3_x64-setup.exe</span></div>
         <div class="ok">✓ installed to %LOCALAPPDATA%\Aar &mdash; no admin rights</div>
       </div>
-      <div class="step-note">per user. brings aar, python and the windows desktop server. <code>/S</code> installs silently. for now: install it in a vm, not on your everyday pc.</div>
+      <div class="step-note">per user. brings aar, python and the windows desktop server. <code>/S</code> installs silently. for now: try it in a vm or the windows sandbox first.</div>
     </div>
 
     <div class="step reveal">
@@ -349,7 +349,7 @@
     <details class="reveal"><summary>does my data leave the pc?</summary>
       <p>not with the default setup: the model runs in ollama on your machine, conversations and the photo index are stored locally. that makes gdpr-compliant use easy. aar desktop collects no usage data and does not check for updates; it only goes online by itself to download ollama and the model during setup and to load the extension list. if you point aar at a cloud provider, that provider sees what you send. made in the eu, open source &mdash; you can read every line.</p></details>
     <details class="reveal"><summary>can it break something?</summary>
-      <p>every change &mdash; writing files, running commands, clicking in programs &mdash; needs your ok first, unless you choose "work without asking". "read only" blocks changes completely. still, this is an early preview with bugs &mdash; for now use it only in a vm without productive data.</p></details>
+      <p>every change &mdash; writing files, running commands, clicking in programs &mdash; needs your ok first, unless you choose "work without asking". "read only" blocks changes completely. still, this is an early preview with bugs &mdash; try it in a vm or the windows sandbox first.</p></details>
     <details class="reveal"><summary>who is responsible if something goes wrong?</summary>
       <p>you are. aar desktop is free open-source software, provided "as is" without any warranty under the <a href="https://github.com/fischerf/aar-desktop/blob/main/LICENSE" target="_blank" rel="noopener">apache license 2.0</a>, and you use it at your own risk. check every permission request, keep backups and keep productive data away from it.</p></details>
     <details class="reveal"><summary>i already use aar in the terminal / vs code.</summary>
@@ -367,7 +367,7 @@
     <div class="cta-box reveal">
       <h2>say hi to the eagle.</h2>
       <p>aar desktop is built on aar &mdash; open source, apache 2.0.</p>
-      <p class="cta-warn">early preview &mdash; please test it in a virtual machine only.</p>
+      <p class="cta-warn">early preview &mdash; try it in a virtual machine or the windows sandbox first.</p>
       <div class="btn-row">
         <a href="https://github.com/fischerf/aar-desktop/releases/download/v0.1.3/Aar_0.1.3_x64-setup.exe" class="btn btn-primary">download</a>
         <a href="/aar/" class="btn btn-ghost">about aar</a>
