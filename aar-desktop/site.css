@@ -248,6 +248,7 @@ h2.sec-title {
 .req td { padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top; }
 .req tr:last-child td { border-bottom:none; }
 .req td code { color:var(--accent2); }
+.eu-flag { height:.9em; width:auto; vertical-align:-1px; margin-right:5px; border-radius:2px; }
 [data-theme="dark"] .req td code { color:var(--accent); }
 
 /* ─── faq ────────────────────────────────────────────── */
