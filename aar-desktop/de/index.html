@@ -89,7 +89,7 @@
   <div class="wrap hero-grid">
     <div>
       <div class="hero-badge reveal">
-        <span class="dot">●</span> windows 11 &nbsp;·&nbsp; v0.1.3 Vorschau &nbsp;·&nbsp; läuft lokal &nbsp;·&nbsp; made in the EU &nbsp;·&nbsp; basiert auf <a href="/aar/">aar</a>
+        <span class="dot">●</span> windows 11 + linux &nbsp;·&nbsp; v0.1.4 Vorschau &nbsp;·&nbsp; läuft lokal &nbsp;·&nbsp; made in the EU &nbsp;·&nbsp; basiert auf <a href="/aar/">aar</a>
       </div>
       <h1 class="reveal">Ein kleiner Adler, der dir<br/>am PC <em>wirklich Arbeit abnimmt.</em></h1>
       <p class="hero-sub reveal">
@@ -104,17 +104,24 @@
           <button class="itab on" onclick="switchTab(this,'setup')">installer</button>
           <button class="itab" onclick="switchTab(this,'silent')">still / it</button>
           <button class="itab" onclick="switchTab(this,'own')">eigenes aar</button>
+          <button class="itab" onclick="switchTab(this,'linux')">linux</button>
         </div>
         <div class="ipanel on" id="tab-setup">
           <div class="icomment"># pro Benutzer, ohne Adminrechte — bringt aar + Python mit</div>
           <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
-            <span class="ps">&gt;</span><span class="ic">Aar_0.1.3_x64-setup.exe</span><button class="copy-btn">kopieren</button>
+            <span class="ps">&gt;</span><span class="ic">Aar_0.1.4_x64-setup.exe</span><button class="copy-btn">kopieren</button>
           </div>
         </div>
         <div class="ipanel" id="tab-silent">
           <div class="icomment"># unbeaufsichtigt: installieren, dann Ollama + ein Modell einrichten</div>
           <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
-            <span class="ps">&gt;</span><span class="ic">Aar_0.1.3_x64-setup.exe /S &amp;&amp; aar-desktop.exe --setup setup.log qwen3.5:4b</span><button class="copy-btn">kopieren</button>
+            <span class="ps">&gt;</span><span class="ic">Aar_0.1.4_x64-setup.exe /S &amp;&amp; aar-desktop.exe --setup setup.log qwen3.5:4b</span><button class="copy-btn">kopieren</button>
+          </div>
+        </div>
+        <div class="ipanel" id="tab-linux">
+          <div class="icomment"># Linux-Vorschau: eine Datei, bringt aar + Python mit (andere Programme bedienen noch nicht)</div>
+          <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
+            <span class="ps">$</span><span class="ic">chmod +x Aar_0.1.4_amd64.AppImage &amp;&amp; ./Aar_0.1.4_amd64.AppImage</span><button class="copy-btn">kopieren</button>
           </div>
         </div>
         <div class="ipanel" id="tab-own">
@@ -125,8 +132,9 @@
         </div>
       </div>
       <div class="btn-row hero-dl reveal">
-        <a href="https://github.com/fischerf/aar-desktop/releases/download/v0.1.3/Aar_0.1.3_x64-setup.exe" class="btn btn-primary">v0.1.3 herunterladen</a>
-        <a href="https://github.com/fischerf/aar-desktop/releases/tag/v0.1.3" class="btn btn-ghost" target="_blank" rel="noopener">Versionshinweise</a>
+        <a href="https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_x64-setup.exe" class="btn btn-primary">v0.1.4 herunterladen</a>
+        <a href="https://github.com/fischerf/aar-desktop/releases/tag/v0.1.4" class="btn btn-ghost" target="_blank" rel="noopener">Versionshinweise</a>
+        <a href="https://github.com/fischerf/aar-desktop/releases/tag/v0.1.4" class="btn btn-ghost" target="_blank" rel="noopener">Linux (Vorschau)</a>
       </div>
     </div>
     <div class="hero-mascot reveal" aria-hidden="true">
@@ -293,7 +301,7 @@
     <div class="step reveal">
       <div class="step-num"><span>01</span> Installer starten</div>
       <div class="term">
-        <div class="ln"><span class="ps">&gt;</span><span class="tc">Aar_0.1.3_x64-setup.exe</span></div>
+        <div class="ln"><span class="ps">&gt;</span><span class="tc">Aar_0.1.4_x64-setup.exe</span></div>
         <div class="ok">✓ installiert nach %LOCALAPPDATA%\Aar &mdash; ohne Adminrechte</div>
       </div>
       <div class="step-note">Pro Benutzer. Bringt aar, Python und den Windows-Desktop-Server mit. <code>/S</code> installiert ohne Rückfragen. Probier es erstmal in einer VM oder der Windows Sandbox aus.</div>
@@ -345,8 +353,8 @@
       <p>Prima &ndash; trag unter Einstellungen → Erweitert → Agent-Programm dein <code>aar</code> ein. Erweiterungen und Werkzeug-Server werden dann für dieses Python installiert, Sitzungen und Konfiguration teilen sich beide.</p></details>
     <details class="reveal"><summary>Erkennt er Personen auf Fotos?</summary>
       <p>Nein. Die Fotosuche beschreibt, was auf einem Foto ist (Gegenstände, Anzahl der Personen, Ort, Text), macht aber keine Gesichtserkennung.</p></details>
-    <details class="reveal"><summary>Welches Windows?</summary>
-      <p>Windows 11 (WebView2 ist eingebaut). 8 GB Arbeitsspeicher reichen für das kleine Modell; eine Grafikkarte macht alles schneller.</p></details>
+    <details class="reveal"><summary>Welche Systeme?</summary>
+      <p>Windows 11 (WebView2 ist eingebaut). Linux als Vorschau: AppImage, rpm oder tar.gz für x86-64 (glibc 2.35+, z. B. Kubuntu 22.04+, Fedora 36+) &ndash; dort arbeitet Aar mit Dateien, Befehlen und Webseiten, kann andere Programme aber noch nicht bedienen. 8 GB Arbeitsspeicher reichen für das kleine Modell; eine Grafikkarte macht alles schneller.</p></details>
   </div>
 </section>
 
@@ -358,7 +366,7 @@
       <p>Aar Desktop basiert auf aar &ndash; Open Source, Apache 2.0.</p>
       <p class="cta-warn">Frühe Vorschau &ndash; probier sie erstmal in einer virtuellen Maschine oder Windows Sandbox aus.</p>
       <div class="btn-row">
-        <a href="https://github.com/fischerf/aar-desktop/releases/download/v0.1.3/Aar_0.1.3_x64-setup.exe" class="btn btn-primary">herunterladen</a>
+        <a href="https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_x64-setup.exe" class="btn btn-primary">herunterladen</a>
         <a href="/aar/" class="btn btn-ghost">über aar</a>
         <a href="https://discord.gg/xYJNHJV7Bh" class="btn btn-ghost" target="_blank" rel="noopener">Discord</a>
       </div>

@@ -101,7 +101,7 @@
   <div class="wrap hero-grid">
     <div>
       <div class="hero-badge reveal">
-        <span class="dot">●</span> windows 11 &nbsp;·&nbsp; v0.1.3 preview &nbsp;·&nbsp; runs locally &nbsp;·&nbsp; made in the eu &nbsp;·&nbsp; built on <a href="/aar/">aar</a>
+        <span class="dot">●</span> windows 11 + linux &nbsp;·&nbsp; v0.1.4 preview &nbsp;·&nbsp; runs locally &nbsp;·&nbsp; made in the eu &nbsp;·&nbsp; built on <a href="/aar/">aar</a>
       </div>
       <h1 class="reveal">a little eagle on your desktop<br/>that <em>actually gets things done.</em></h1>
       <p class="hero-sub reveal">
@@ -116,17 +116,24 @@
           <button class="itab on" onclick="switchTab(this,'setup')">installer</button>
           <button class="itab" onclick="switchTab(this,'silent')">silent / it</button>
           <button class="itab" onclick="switchTab(this,'own')">own aar</button>
+          <button class="itab" onclick="switchTab(this,'linux')">linux</button>
         </div>
         <div class="ipanel on" id="tab-setup">
           <div class="icomment"># per user, no admin rights — brings aar + python with it</div>
           <div class="iline" onclick="copyCmd(this)" title="click to copy">
-            <span class="ps">&gt;</span><span class="ic">Aar_0.1.3_x64-setup.exe</span><button class="copy-btn">copy</button>
+            <span class="ps">&gt;</span><span class="ic">Aar_0.1.4_x64-setup.exe</span><button class="copy-btn">copy</button>
           </div>
         </div>
         <div class="ipanel" id="tab-silent">
           <div class="icomment"># unattended: install, then set up ollama + a model</div>
           <div class="iline" onclick="copyCmd(this)" title="click to copy">
-            <span class="ps">&gt;</span><span class="ic">Aar_0.1.3_x64-setup.exe /S &amp;&amp; aar-desktop.exe --setup setup.log qwen3.5:4b</span><button class="copy-btn">copy</button>
+            <span class="ps">&gt;</span><span class="ic">Aar_0.1.4_x64-setup.exe /S &amp;&amp; aar-desktop.exe --setup setup.log qwen3.5:4b</span><button class="copy-btn">copy</button>
+          </div>
+        </div>
+        <div class="ipanel" id="tab-linux">
+          <div class="icomment"># linux preview: one file, brings aar + python (no clicking in other programs yet)</div>
+          <div class="iline" onclick="copyCmd(this)" title="click to copy">
+            <span class="ps">$</span><span class="ic">chmod +x Aar_0.1.4_amd64.AppImage &amp;&amp; ./Aar_0.1.4_amd64.AppImage</span><button class="copy-btn">copy</button>
           </div>
         </div>
         <div class="ipanel" id="tab-own">
@@ -137,8 +144,9 @@
         </div>
       </div>
       <div class="btn-row hero-dl reveal">
-        <a href="https://github.com/fischerf/aar-desktop/releases/download/v0.1.3/Aar_0.1.3_x64-setup.exe" class="btn btn-primary">download v0.1.3</a>
-        <a href="https://github.com/fischerf/aar-desktop/releases/tag/v0.1.3" class="btn btn-ghost" target="_blank" rel="noopener">release notes</a>
+        <a href="https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_x64-setup.exe" class="btn btn-primary">download v0.1.4</a>
+        <a href="https://github.com/fischerf/aar-desktop/releases/tag/v0.1.4" class="btn btn-ghost" target="_blank" rel="noopener">release notes</a>
+        <a href="https://github.com/fischerf/aar-desktop/releases/tag/v0.1.4" class="btn btn-ghost" target="_blank" rel="noopener">linux (preview)</a>
       </div>
     </div>
     <div class="hero-mascot reveal" aria-hidden="true">
@@ -304,7 +312,7 @@
     <div class="step reveal">
       <div class="step-num"><span>01</span> run the installer</div>
       <div class="term">
-        <div class="ln"><span class="ps">&gt;</span><span class="tc">Aar_0.1.3_x64-setup.exe</span></div>
+        <div class="ln"><span class="ps">&gt;</span><span class="tc">Aar_0.1.4_x64-setup.exe</span></div>
         <div class="ok">✓ installed to %LOCALAPPDATA%\Aar &mdash; no admin rights</div>
       </div>
       <div class="step-note">per user. brings aar, python and the windows desktop server. <code>/S</code> installs silently. for now: try it in a vm or the windows sandbox first.</div>
@@ -356,8 +364,8 @@
       <p>great &mdash; set settings → advanced → agent program to your <code>aar</code>. extensions and tool servers are then installed for that python, sessions and config are shared.</p></details>
     <details class="reveal"><summary>does it recognise people on photos?</summary>
       <p>no. the photo search describes what is on a photo (objects, number of people, place, text) but does no face recognition.</p></details>
-    <details class="reveal"><summary>which windows?</summary>
-      <p>windows 11 (webview2 is built in). 8 gb ram is enough for the small model; a gpu makes everything faster.</p></details>
+    <details class="reveal"><summary>which systems?</summary>
+      <p>windows 11 (webview2 is built in). linux as a preview: appimage, rpm or tar.gz for x86-64 (glibc 2.35+, e.g. kubuntu 22.04+, fedora 36+) &mdash; there aar works with files, commands and web pages but cannot operate other programs yet. 8 gb ram is enough for the small model; a gpu makes everything faster.</p></details>
   </div>
 </section>
 
@@ -369,7 +377,7 @@
       <p>aar desktop is built on aar &mdash; open source, apache 2.0.</p>
       <p class="cta-warn">early preview &mdash; try it in a virtual machine or the windows sandbox first.</p>
       <div class="btn-row">
-        <a href="https://github.com/fischerf/aar-desktop/releases/download/v0.1.3/Aar_0.1.3_x64-setup.exe" class="btn btn-primary">download</a>
+        <a href="https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_x64-setup.exe" class="btn btn-primary">download</a>
         <a href="/aar/" class="btn btn-ghost">about aar</a>
         <a href="https://discord.gg/xYJNHJV7Bh" class="btn btn-ghost" target="_blank" rel="noopener">Discord</a>
       </div>
