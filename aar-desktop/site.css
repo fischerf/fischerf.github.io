@@ -137,7 +137,7 @@ section.hero { padding:64px 0 56px; }
   background:var(--bg3); border:1px solid var(--border); border-radius:6px;
   overflow:hidden; max-width:620px;
 }
-.install-tabs { display:flex; border-bottom:1px solid var(--border); }
+.install-tabs { display:flex; flex-wrap:wrap; border-bottom:1px solid var(--border); }
 .itab {
   padding:6px 13px; font-size:11px; color:var(--text-dim);
   cursor:pointer; border:none; background:none; font-family:var(--font);

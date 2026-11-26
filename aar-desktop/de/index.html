@@ -102,27 +102,34 @@
       <div class="install-box reveal">
         <div class="install-tabs">
           <button class="itab on" onclick="switchTab(this,'setup')">windows</button>
-          <button class="itab" onclick="switchTab(this,'linux')">linux</button>
+          <button class="itab" onclick="switchTab(this,'appimage')">linux · AppImage</button>
+          <button class="itab" onclick="switchTab(this,'rpm')">linux · rpm</button>
+          <button class="itab" onclick="switchTab(this,'targz')">linux · tar.gz</button>
           <button class="itab" onclick="switchTab(this,'silent')">still / it</button>
-          <button class="itab" onclick="switchTab(this,'own')">eigenes aar</button>
         </div>
         <div class="ipanel on" id="tab-setup">
-          <div class="icomment"># PowerShell: lädt den Installer und startet ihn — pro Benutzer, ohne Adminrechte, bringt aar + Python mit</div>
+          <div class="icomment"># pro Benutzer, ohne Adminrechte — bringt aar + Python mit</div>
           <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
-            <span class="ps">&gt;</span><span class="ic">curl.exe -Lo "$env:TEMP\Aar-setup.exe" https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_x64-setup.exe; &amp; "$env:TEMP\Aar-setup.exe"</span><button class="copy-btn">kopieren</button>
+            <span class="ps">&gt;</span><span class="ic">Aar_0.1.4_x64-setup.exe</span><button class="copy-btn">kopieren</button>
           </div>
         </div>
-        <div class="ipanel" id="tab-linux">
-          <div class="icomment"># Linux-Vorschau, bringt aar + Python mit. Dateien, Befehle, Webseiten: ja — andere Programme fernsteuern (klicken, tippen) kann Aar bisher nur unter Windows.</div>
-          <div class="icomment"># AppImage — eine Datei für jede Distribution (startet sie nicht: Paket libfuse2 installieren)</div>
+        <div class="ipanel" id="tab-appimage">
+          <div class="icomment"># Linux-Vorschau, bringt aar + Python mit — andere Programme fernsteuern (klicken, tippen) geht bisher nur unter Windows</div>
+          <div class="icomment"># eine Datei für jede Distribution (startet sie nicht: Paket libfuse2 installieren)</div>
           <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
             <span class="ps">$</span><span class="ic">curl -LO https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_amd64.AppImage &amp;&amp; chmod +x Aar_0.1.4_amd64.AppImage &amp;&amp; ./Aar_0.1.4_amd64.AppImage</span><button class="copy-btn">kopieren</button>
           </div>
-          <div class="icomment"># Fedora (rpm) — openSUSE: zypper statt dnf</div>
+        </div>
+        <div class="ipanel" id="tab-rpm">
+          <div class="icomment"># Linux-Vorschau, bringt aar + Python mit — andere Programme fernsteuern (klicken, tippen) geht bisher nur unter Windows</div>
+          <div class="icomment"># Fedora — openSUSE: zypper statt dnf</div>
           <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
             <span class="ps">$</span><span class="ic">sudo dnf install https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar-0.1.4-1.x86_64.rpm</span><button class="copy-btn">kopieren</button>
           </div>
-          <div class="icomment"># tar.gz — nach ~ entpacken und ins Anwendungsmenü eintragen</div>
+        </div>
+        <div class="ipanel" id="tab-targz">
+          <div class="icomment"># Linux-Vorschau, bringt aar + Python mit — andere Programme fernsteuern (klicken, tippen) geht bisher nur unter Windows</div>
+          <div class="icomment"># nach ~ entpacken und ins Anwendungsmenü eintragen</div>
           <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
             <span class="ps">$</span><span class="ic">curl -L https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_x86_64.tar.gz | tar -xz -C ~ &amp;&amp; ~/Aar_0.1.4_x86_64/install.sh</span><button class="copy-btn">kopieren</button>
           </div>
@@ -131,12 +138,6 @@
           <div class="icomment"># unbeaufsichtigt: installieren, dann Ollama + ein Modell einrichten</div>
           <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
             <span class="ps">&gt;</span><span class="ic">Aar_0.1.4_x64-setup.exe /S &amp;&amp; aar-desktop.exe --setup setup.log qwen3.5:4b</span><button class="copy-btn">kopieren</button>
-          </div>
-        </div>
-        <div class="ipanel" id="tab-own">
-          <div class="icomment"># aar schon da? In der App eintragen: Einstellungen → Erweitert → Agent-Programm</div>
-          <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
-            <span class="ps">$</span><span class="ic">git clone https://github.com/fischerf/aar &amp;&amp; pip install -e "./aar[acp,mcp,windows]"</span><button class="copy-btn">kopieren</button>
           </div>
         </div>
       </div>

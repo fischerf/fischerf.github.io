@@ -114,27 +114,34 @@
       <div class="install-box reveal">
         <div class="install-tabs">
           <button class="itab on" onclick="switchTab(this,'setup')">windows</button>
-          <button class="itab" onclick="switchTab(this,'linux')">linux</button>
+          <button class="itab" onclick="switchTab(this,'appimage')">linux · AppImage</button>
+          <button class="itab" onclick="switchTab(this,'rpm')">linux · rpm</button>
+          <button class="itab" onclick="switchTab(this,'targz')">linux · tar.gz</button>
           <button class="itab" onclick="switchTab(this,'silent')">silent / it</button>
-          <button class="itab" onclick="switchTab(this,'own')">own aar</button>
         </div>
         <div class="ipanel on" id="tab-setup">
-          <div class="icomment"># powershell: downloads the installer and starts it — per user, no admin rights, brings aar + python with it</div>
+          <div class="icomment"># per user, no admin rights — brings aar + python with it</div>
           <div class="iline" onclick="copyCmd(this)" title="click to copy">
-            <span class="ps">&gt;</span><span class="ic">curl.exe -Lo "$env:TEMP\Aar-setup.exe" https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_x64-setup.exe; &amp; "$env:TEMP\Aar-setup.exe"</span><button class="copy-btn">copy</button>
+            <span class="ps">&gt;</span><span class="ic">Aar_0.1.4_x64-setup.exe</span><button class="copy-btn">copy</button>
           </div>
         </div>
-        <div class="ipanel" id="tab-linux">
-          <div class="icomment"># linux preview, brings aar + python with it. files, commands, web pages: yes — remote-controlling other programs (clicking, typing) is windows-only for now.</div>
-          <div class="icomment"># appimage — one file for any distribution (won't start? install the libfuse2 package)</div>
+        <div class="ipanel" id="tab-appimage">
+          <div class="icomment"># linux preview, brings aar + python with it — remote-controlling other programs (clicking, typing) is windows-only for now</div>
+          <div class="icomment"># one file for any distribution (won't start? install the libfuse2 package)</div>
           <div class="iline" onclick="copyCmd(this)" title="click to copy">
             <span class="ps">$</span><span class="ic">curl -LO https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_amd64.AppImage &amp;&amp; chmod +x Aar_0.1.4_amd64.AppImage &amp;&amp; ./Aar_0.1.4_amd64.AppImage</span><button class="copy-btn">copy</button>
           </div>
-          <div class="icomment"># fedora (rpm) — opensuse: zypper instead of dnf</div>
+        </div>
+        <div class="ipanel" id="tab-rpm">
+          <div class="icomment"># linux preview, brings aar + python with it — remote-controlling other programs (clicking, typing) is windows-only for now</div>
+          <div class="icomment"># fedora — opensuse: zypper instead of dnf</div>
           <div class="iline" onclick="copyCmd(this)" title="click to copy">
             <span class="ps">$</span><span class="ic">sudo dnf install https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar-0.1.4-1.x86_64.rpm</span><button class="copy-btn">copy</button>
           </div>
-          <div class="icomment"># tar.gz — unpack to ~ and add to the application menu</div>
+        </div>
+        <div class="ipanel" id="tab-targz">
+          <div class="icomment"># linux preview, brings aar + python with it — remote-controlling other programs (clicking, typing) is windows-only for now</div>
+          <div class="icomment"># unpack to ~ and add to the application menu</div>
           <div class="iline" onclick="copyCmd(this)" title="click to copy">
             <span class="ps">$</span><span class="ic">curl -L https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_x86_64.tar.gz | tar -xz -C ~ &amp;&amp; ~/Aar_0.1.4_x86_64/install.sh</span><button class="copy-btn">copy</button>
           </div>
@@ -143,12 +150,6 @@
           <div class="icomment"># unattended: install, then set up ollama + a model</div>
           <div class="iline" onclick="copyCmd(this)" title="click to copy">
             <span class="ps">&gt;</span><span class="ic">Aar_0.1.4_x64-setup.exe /S &amp;&amp; aar-desktop.exe --setup setup.log qwen3.5:4b</span><button class="copy-btn">copy</button>
-          </div>
-        </div>
-        <div class="ipanel" id="tab-own">
-          <div class="icomment"># already have aar? point the app at it: settings → advanced → agent program</div>
-          <div class="iline" onclick="copyCmd(this)" title="click to copy">
-            <span class="ps">$</span><span class="ic">git clone https://github.com/fischerf/aar &amp;&amp; pip install -e "./aar[acp,mcp,windows]"</span><button class="copy-btn">copy</button>
           </div>
         </div>
       </div>
