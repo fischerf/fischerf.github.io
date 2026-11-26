@@ -105,7 +105,6 @@
           <button class="itab" onclick="switchTab(this,'appimage')">linux · AppImage</button>
           <button class="itab" onclick="switchTab(this,'rpm')">linux · rpm</button>
           <button class="itab" onclick="switchTab(this,'targz')">linux · tar.gz</button>
-          <button class="itab" onclick="switchTab(this,'silent')">still / it</button>
         </div>
         <div class="ipanel on" id="tab-setup">
           <div class="icomment"># pro Benutzer, ohne Adminrechte — bringt aar + Python mit</div>
@@ -132,12 +131,6 @@
           <div class="icomment"># nach ~ entpacken und ins Anwendungsmenü eintragen</div>
           <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
             <span class="ps">$</span><span class="ic">curl -L https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_x86_64.tar.gz | tar -xz -C ~ &amp;&amp; ~/Aar_0.1.4_x86_64/install.sh</span><button class="copy-btn">kopieren</button>
-          </div>
-        </div>
-        <div class="ipanel" id="tab-silent">
-          <div class="icomment"># unbeaufsichtigt: installieren, dann Ollama + ein Modell einrichten</div>
-          <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
-            <span class="ps">&gt;</span><span class="ic">Aar_0.1.4_x64-setup.exe /S &amp;&amp; aar-desktop.exe --setup setup.log qwen3.5:4b</span><button class="copy-btn">kopieren</button>
           </div>
         </div>
       </div>

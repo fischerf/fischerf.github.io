@@ -102,7 +102,6 @@
           <button class="itab" onclick="switchTab(this,'appimage')">linux · AppImage</button>
           <button class="itab" onclick="switchTab(this,'rpm')">linux · rpm</button>
           <button class="itab" onclick="switchTab(this,'targz')">linux · tar.gz</button>
-          <button class="itab" onclick="switchTab(this,'silent')">静默安装 / IT</button>
         </div>
         <div class="ipanel on" id="tab-setup">
           <div class="icomment"># 按用户安装，无需管理员权限 —— 自带 aar 和 Python</div>
@@ -129,12 +128,6 @@
           <div class="icomment"># 解压到 ~ 并添加到应用程序菜单</div>
           <div class="iline" onclick="copyCmd(this)" title="点击复制">
             <span class="ps">$</span><span class="ic">curl -L https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_x86_64.tar.gz | tar -xz -C ~ &amp;&amp; ~/Aar_0.1.4_x86_64/install.sh</span><button class="copy-btn">复制</button>
-          </div>
-        </div>
-        <div class="ipanel" id="tab-silent">
-          <div class="icomment"># 无人值守：安装后配置 Ollama 和模型</div>
-          <div class="iline" onclick="copyCmd(this)" title="点击复制">
-            <span class="ps">&gt;</span><span class="ic">Aar_0.1.4_x64-setup.exe /S &amp;&amp; aar-desktop.exe --setup setup.log qwen3.5:4b</span><button class="copy-btn">复制</button>
           </div>
         </div>
       </div>
