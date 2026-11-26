@@ -93,35 +93,44 @@
       </div>
       <h1 class="reveal">Ein kleiner Adler, der dir<br/>am PC <em>wirklich Arbeit abnimmt.</em></h1>
       <p class="hero-sub reveal">
-        Aar Desktop bringt den <a href="/aar/">Agenten aar</a> als freundliches Maskottchen in die Ecke deines Bildschirms.
-        Frag in ganz normalen Worten &ndash; er öffnet Programme, klickt und tippt für dich, liest deine Dokumente,
+        Aar Desktop bringt einen <a href="/aar/">KI-Agenten</a> als freundliches Maskottchen in die Ecke deines Bildschirms.
+        Rede ganz natürlich mit ihm &ndash; er öffnet Programme, klickt und tippt für dich, liest deine Dokumente,
         findet Fotos nach ihrem Inhalt und <strong>fragt, bevor er etwas verändert</strong>.
-        Gemacht für Menschen, die nie ein Terminal öffnen würden. Das Sprachmodell läuft auf deinem PC.
+        Gemacht für Menschen, die nie ein Terminal öffnen würden. Die KI kann lokal auf deinem PC laufen, aber auch Cloud-Anbieter wie OpenAI, Anthropic und Gemini werden unterstützt.
       </p>
       <div class="preview-note reveal"><b>⚠ Frühe Vorschau.</b> Das ist eine frühe Version, und sie enthält Fehler. Ein Agent, der klickt, tippt und Dateien schreibt, kann Fehler machen, die sich schwer rückgängig machen lassen &ndash; probier ihn erstmal in einer <strong>virtuellen Maschine oder Windows Sandbox</strong> aus.</div>
       <div class="install-box reveal">
         <div class="install-tabs">
-          <button class="itab on" onclick="switchTab(this,'setup')">installer</button>
+          <button class="itab on" onclick="switchTab(this,'setup')">windows</button>
+          <button class="itab" onclick="switchTab(this,'linux')">linux</button>
           <button class="itab" onclick="switchTab(this,'silent')">still / it</button>
           <button class="itab" onclick="switchTab(this,'own')">eigenes aar</button>
-          <button class="itab" onclick="switchTab(this,'linux')">linux</button>
         </div>
         <div class="ipanel on" id="tab-setup">
-          <div class="icomment"># pro Benutzer, ohne Adminrechte — bringt aar + Python mit</div>
+          <div class="icomment"># PowerShell: lädt den Installer und startet ihn — pro Benutzer, ohne Adminrechte, bringt aar + Python mit</div>
           <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
-            <span class="ps">&gt;</span><span class="ic">Aar_0.1.4_x64-setup.exe</span><button class="copy-btn">kopieren</button>
+            <span class="ps">&gt;</span><span class="ic">curl.exe -Lo "$env:TEMP\Aar-setup.exe" https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_x64-setup.exe; &amp; "$env:TEMP\Aar-setup.exe"</span><button class="copy-btn">kopieren</button>
+          </div>
+        </div>
+        <div class="ipanel" id="tab-linux">
+          <div class="icomment"># Linux-Vorschau, bringt aar + Python mit. Dateien, Befehle, Webseiten: ja — andere Programme fernsteuern (klicken, tippen) kann Aar bisher nur unter Windows.</div>
+          <div class="icomment"># AppImage — eine Datei für jede Distribution (startet sie nicht: Paket libfuse2 installieren)</div>
+          <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
+            <span class="ps">$</span><span class="ic">curl -LO https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_amd64.AppImage &amp;&amp; chmod +x Aar_0.1.4_amd64.AppImage &amp;&amp; ./Aar_0.1.4_amd64.AppImage</span><button class="copy-btn">kopieren</button>
+          </div>
+          <div class="icomment"># Fedora (rpm) — openSUSE: zypper statt dnf</div>
+          <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
+            <span class="ps">$</span><span class="ic">sudo dnf install https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar-0.1.4-1.x86_64.rpm</span><button class="copy-btn">kopieren</button>
+          </div>
+          <div class="icomment"># tar.gz — nach ~ entpacken und ins Anwendungsmenü eintragen</div>
+          <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
+            <span class="ps">$</span><span class="ic">curl -L https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_x86_64.tar.gz | tar -xz -C ~ &amp;&amp; ~/Aar_0.1.4_x86_64/install.sh</span><button class="copy-btn">kopieren</button>
           </div>
         </div>
         <div class="ipanel" id="tab-silent">
           <div class="icomment"># unbeaufsichtigt: installieren, dann Ollama + ein Modell einrichten</div>
           <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
             <span class="ps">&gt;</span><span class="ic">Aar_0.1.4_x64-setup.exe /S &amp;&amp; aar-desktop.exe --setup setup.log qwen3.5:4b</span><button class="copy-btn">kopieren</button>
-          </div>
-        </div>
-        <div class="ipanel" id="tab-linux">
-          <div class="icomment"># Linux-Vorschau: eine Datei, bringt aar + Python mit (andere Programme bedienen noch nicht)</div>
-          <div class="iline" onclick="copyCmd(this)" title="zum Kopieren klicken">
-            <span class="ps">$</span><span class="ic">chmod +x Aar_0.1.4_amd64.AppImage &amp;&amp; ./Aar_0.1.4_amd64.AppImage</span><button class="copy-btn">kopieren</button>
           </div>
         </div>
         <div class="ipanel" id="tab-own">

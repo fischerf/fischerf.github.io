@@ -93,32 +93,41 @@
       </div>
       <h1 class="reveal">桌面上的一只小鹰，<br/><em>真的能帮你把事情办好。</em></h1>
       <p class="hero-sub reveal">
-        Aar Desktop 把 <a href="/aar/">aar 智能体</a>变成屏幕角落里一个友好的吉祥物。用日常语言提问就行——它会打开程序、替你点击和输入、阅读你的文档、按内容查找照片，并且<strong>在做任何更改之前先征求你的同意</strong>。专为从不打开终端的人设计。语言模型就在你自己的电脑上运行。
+        Aar Desktop 把一个 <a href="/aar/">AI 智能体</a>变成屏幕角落里一个友好的吉祥物。像平常聊天一样跟它说话就行——它会打开程序、替你点击和输入、阅读你的文档、按内容查找照片，并且<strong>在做任何更改之前先征求你的同意</strong>。专为从不打开终端的人设计。AI 可以在你自己的电脑上本地运行，也支持 OpenAI、Anthropic、Gemini 等云服务商。
       </p>
       <div class="preview-note reveal"><b>⚠ 早期预览版。</b>这是一个早期版本，其中难免存在错误。会点击、输入并写入文件的智能体可能犯下难以撤销的错误——建议先在<strong>虚拟机或 Windows 沙盒</strong>中试用。</div>
       <div class="install-box reveal">
         <div class="install-tabs">
-          <button class="itab on" onclick="switchTab(this,'setup')">安装程序</button>
+          <button class="itab on" onclick="switchTab(this,'setup')">windows</button>
+          <button class="itab" onclick="switchTab(this,'linux')">linux</button>
           <button class="itab" onclick="switchTab(this,'silent')">静默安装 / IT</button>
           <button class="itab" onclick="switchTab(this,'own')">已有 aar</button>
-          <button class="itab" onclick="switchTab(this,'linux')">linux</button>
         </div>
         <div class="ipanel on" id="tab-setup">
-          <div class="icomment"># 按用户安装，无需管理员权限 —— 自带 aar 和 Python</div>
+          <div class="icomment"># PowerShell：下载并启动安装程序 —— 按用户安装，无需管理员权限，自带 aar 和 Python</div>
           <div class="iline" onclick="copyCmd(this)" title="点击复制">
-            <span class="ps">&gt;</span><span class="ic">Aar_0.1.4_x64-setup.exe</span><button class="copy-btn">复制</button>
+            <span class="ps">&gt;</span><span class="ic">curl.exe -Lo "$env:TEMP\Aar-setup.exe" https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_x64-setup.exe; &amp; "$env:TEMP\Aar-setup.exe"</span><button class="copy-btn">复制</button>
+          </div>
+        </div>
+        <div class="ipanel" id="tab-linux">
+          <div class="icomment"># Linux 预览版，自带 aar 和 Python。可以处理文件、命令和网页 —— 远程操作其他程序（点击、输入）目前仅限 Windows。</div>
+          <div class="icomment"># AppImage —— 单个文件，适用于所有发行版（无法启动？请安装 libfuse2 软件包）</div>
+          <div class="iline" onclick="copyCmd(this)" title="点击复制">
+            <span class="ps">$</span><span class="ic">curl -LO https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_amd64.AppImage &amp;&amp; chmod +x Aar_0.1.4_amd64.AppImage &amp;&amp; ./Aar_0.1.4_amd64.AppImage</span><button class="copy-btn">复制</button>
+          </div>
+          <div class="icomment"># Fedora（rpm）—— openSUSE：用 zypper 代替 dnf</div>
+          <div class="iline" onclick="copyCmd(this)" title="点击复制">
+            <span class="ps">$</span><span class="ic">sudo dnf install https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar-0.1.4-1.x86_64.rpm</span><button class="copy-btn">复制</button>
+          </div>
+          <div class="icomment"># tar.gz —— 解压到 ~ 并添加到应用程序菜单</div>
+          <div class="iline" onclick="copyCmd(this)" title="点击复制">
+            <span class="ps">$</span><span class="ic">curl -L https://github.com/fischerf/aar-desktop/releases/download/v0.1.4/Aar_0.1.4_x86_64.tar.gz | tar -xz -C ~ &amp;&amp; ~/Aar_0.1.4_x86_64/install.sh</span><button class="copy-btn">复制</button>
           </div>
         </div>
         <div class="ipanel" id="tab-silent">
           <div class="icomment"># 无人值守：安装后配置 Ollama 和模型</div>
           <div class="iline" onclick="copyCmd(this)" title="点击复制">
             <span class="ps">&gt;</span><span class="ic">Aar_0.1.4_x64-setup.exe /S &amp;&amp; aar-desktop.exe --setup setup.log qwen3.5:4b</span><button class="copy-btn">复制</button>
-          </div>
-        </div>
-        <div class="ipanel" id="tab-linux">
-          <div class="icomment"># linux 预览版：单个文件，自带 aar + python（暂不能操作其他程序）</div>
-          <div class="iline" onclick="copyCmd(this)" title="点击复制">
-            <span class="ps">$</span><span class="ic">chmod +x Aar_0.1.4_amd64.AppImage &amp;&amp; ./Aar_0.1.4_amd64.AppImage</span><button class="copy-btn">复制</button>
           </div>
         </div>
         <div class="ipanel" id="tab-own">

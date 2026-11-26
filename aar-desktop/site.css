@@ -148,7 +148,8 @@ section.hero { padding:64px 0 56px; }
 .ipanel.on { display:block; }
 .iline { display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; }
 .iline .ps { color:var(--accent); flex-shrink:0; }
-.iline .ic { color:var(--text-hi); font-size:13px; flex:1; }
+.iline .ic { color:var(--text-hi); font-size:13px; flex:1; min-width:0; overflow-wrap:anywhere; }
+.iline + .icomment { margin-top:13px; }
 .copy-btn {
   font-size:10px; color:var(--text-dim); cursor:pointer;
   padding:2px 6px; border:1px solid var(--border); border-radius:3px;
